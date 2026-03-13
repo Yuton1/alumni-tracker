@@ -13,10 +13,11 @@ app.use(express.json());
 
 // --- KONFIGURASI MySQL ---
 const db = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'alumni_tracker'
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_DATABASE,
+    port: process.env.DB_PORT || 3306
 });
 
 // --- FUNGSI PROFILING ---
