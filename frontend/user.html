@@ -65,13 +65,13 @@
                 return;
             }
         
-            const data = await authorizedFetch(`http://localhost:3000/api/user/profile-lengkap?id=${userId}&t=${Date.now()}`);
+            const data = await authorizedFetch(`/api/user/profile-lengkap?id=${userId}&t=${Date.now()}`);
           
           area.innerHTML = `
             <h3>Profile Anda</h3><hr>
             <div class="row">
               <div class="col-md-4 text-center">
-                <img src="http://localhost:3000${data.foto_profil}" class="img-fluid rounded shadow-sm mb-3">
+                <img src="${data.foto_profil}" class="img-fluid rounded shadow-sm mb-3">
                 <h5 class="fw-bold">${data.nama_lengkap}</h5>
                 <span class="badge bg-info text-dark">${data.prodi}</span>
               </div>
@@ -115,7 +115,7 @@
               formData.append('foto', file);
             
               const userId = localStorage.getItem('userId');
-              const res = await fetch(`http://localhost:3000/api/user/upload-foto?id=${userId}`, {
+              const res = await fetch(`/api/user/upload-foto?id=${userId}`, {
                   method: 'POST',
                   body: formData
               });
@@ -152,7 +152,7 @@
                   posisi: document.getElementById('posisi').value
               };
           
-              const res = await authorizedFetch(`http://localhost:3000/api/user/tambah-pekerjaan?id=${userId}`, {
+              const res = await authorizedFetch(`/api/user/tambah-pekerjaan?id=${userId}`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify(payload)
@@ -160,7 +160,7 @@
           
               if (res.success) {
                     alert('Data berhasil disimpan!');
-                    showSection('profile'); // <--- Tambahkan ini agar tampilan langsung update
+                    showSection('profile'); 
               } else {
                   alert('Gagal menyimpan data.');
               }
@@ -175,7 +175,7 @@
               <tbody id="rekapBody"></tbody>
             </table>`;
         
-          const rekapData = await authorizedFetch(`http://localhost:3000/api/user/rekap-pekerjaan`);
+          const rekapData = await authorizedFetch(`/api/user/rekap-pekerjaan`);
           const tbody = document.getElementById('rekapBody');
         
           if (rekapData.length > 0) {
