@@ -32,16 +32,22 @@
   </div>
 
   <script>
-    // Cek jika sudah login, langsung arahkan ke index.html
-    if (localStorage.getItem('isLoggedIn')) {
-      window.location.href = '/index.html';
+    // REVISI: Cek status login dan arahkan sesuai role
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    const userRole = localStorage.getItem('role');
+
+    if (isLoggedIn) {
+      if (userRole === 'admin') {
+        window.location.href = 'index.html';
+      } else {
+        window.location.href = 'user.html';
+      }
     }
 
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
         try {
-          // Anda harus menyimpan hasil fetch ke dalam variabel (misalnya 'response')
           const response = await fetch('/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -51,22 +57,20 @@
             })
           });
       
-          // Gunakan 'response' (bukan 'res') untuk mendapatkan JSON
           const data = await response.json(); 
           
           if (data.success) {
-              // Simpan data ke localStorage
               localStorage.setItem('isLoggedIn', 'true');
               localStorage.setItem('role', data.role);
               localStorage.setItem('userId', data.userId);
               
               alert('Login Berhasil sebagai ' + data.role);
               
-              // Logika pengalihan
+              // Logika pengalihan setelah login baru
               if (data.role === 'admin') {
                   window.location.href = 'index.html';
               } else {
-                  window.location.href = 'user.html';
+                  window.location.href = 'user.html'; 
               }
           } else {
               alert('Login Gagal: ' + (data.message || 'Username/Password salah'));
