@@ -133,7 +133,7 @@
 
     // 1. Load Statistik
     async function updateStats() {
-      const res = await fetch('/api/stats'); // Menggunakan jalur relatif
+      const res = await fetch('/api/stats');
       const stats = await res.json();
       document.getElementById('statTeridentifikasi').textContent = stats['Teridentifikasi dari sumber publik'] || 0;
       document.getElementById('statVerifikasi').textContent = stats['Perlu Verifikasi Manual'] || 0;

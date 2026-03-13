@@ -197,7 +197,17 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        if (!localStorage.getItem('token')) window.location.href = 'login.html';
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    const role = localStorage.getItem('role');
+
+    // Hanya redirect jika memang berada di halaman login dan sudah login
+    if (isLoggedIn) {
+        if (role === 'admin') {
+            window.location.href = '/index.html';
+        } else {
+            window.location.href = '/user.html';
+        }
+    }
     });
   </script>
 </body>
