@@ -40,39 +40,41 @@
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      try {
-        const res = await fetch('http://localhost:3000/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            username: document.getElementById('username').value,
-            password: document.getElementById('password').value
-          })
-        });
-        
-        const data = await res.json();
-        
-        if (data.success) {
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('role', data.role);
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('userId', data.userId);
-            window.location.href = 'user.html';
-            
-            alert('Login Berhasil sebagai ' + data.role);
-            
-            // Logika pengalihan berdasarkan role
-            if (data.role === 'admin') {
-                window.location.href = 'index.html'; // Dashboard Admin
-            } else {
-                window.location.href = 'user.html';  // Dashboard User
-            }
+        try {
+          // Anda harus menyimpan hasil fetch ke dalam variabel (misalnya 'response')
+          const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              username: document.getElementById('username').value,
+              password: document.getElementById('password').value
+            })
+          });
+      
+          // Gunakan 'response' (bukan 'res') untuk mendapatkan JSON
+          const data = await response.json(); 
+          
+          if (data.success) {
+              // Simpan data ke localStorage
+              localStorage.setItem('isLoggedIn', 'true');
+              localStorage.setItem('role', data.role);
+              localStorage.setItem('userId', data.userId);
+              
+              alert('Login Berhasil sebagai ' + data.role);
+              
+              // Logika pengalihan
+              if (data.role === 'admin') {
+                  window.location.href = 'index.html';
+              } else {
+                  window.location.href = 'user.html';
+              }
+          } else {
+              alert('Login Gagal: ' + (data.message || 'Username/Password salah'));
+          }
+        } catch (err) {
+          console.error("Error:", err);
+          alert('Terjadi kesalahan koneksi ke server.');
         }
-      } catch (err) {
-        console.error("Error:", err);
-        alert('Terjadi kesalahan koneksi ke server.');
-      }
     });
   </script>
 </body>
