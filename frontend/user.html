@@ -40,12 +40,11 @@
   <script>
     function logout() {
       localStorage.clear();
-      window.location.href = 'login.html';
+      window.location.replace('login.html');
     }
 
     async function authorizedFetch(url, options = {}) {
       const token = localStorage.getItem('token');
-      // Pastikan header Authorization tetap ada
       options.headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
       const res = await fetch(url, options);
       if (res.status === 401) logout();
@@ -54,19 +53,12 @@
 
     async function showSection(section) {
       const area = document.getElementById('contentArea');
-      
+      const userId = localStorage.getItem('userId');
       
       switch(section) {
         case 'profile':
           area.innerHTML = `<h3>Profile Anda</h3><div id="profileData">Memuat profil...</div>`;
-            const userId = localStorage.getItem('userId');
-            if (!userId || userId === 'null' || userId === 'undefined') {
-                console.error("User ID tidak valid");
-                return;
-            }
-        
-            const data = await authorizedFetch(`/api/user/profile-lengkap?id=${userId}&t=${Date.now()}`);
-          
+          const data = await authorizedFetch(`/api/user/profile-lengkap?id=${userId}&t=${Date.now()}`);
           area.innerHTML = `
             <h3>Profile Anda</h3><hr>
             <div class="row">
@@ -76,138 +68,62 @@
                 <span class="badge bg-info text-dark">${data.prodi}</span>
               </div>
               <div class="col-md-8">
-                <div class="card mb-3">
-                  <div class="card-body">
-                    <h6 class="fw-bold text-primary">Informasi Utama</h6>
-                    <p><strong>Tahun Lulus:</strong> ${data.tahun_lulus || '-'}</p>
-                    <p><strong>Kota:</strong> ${data.kota || '-'}</p>
-                  </div>
-                </div>
-                
-                <div class="card mb-3">
-                  <div class="card-body">
-                    <h6 class="fw-bold text-success">Riwayat Pekerjaan</h6>
-                    <p><strong>Perusahaan:</strong> ${data.nama_perusahaan || 'Belum ada data'}</p>
-                    <p><strong>Posisi:</strong> ${data.posisi || '-'}</p>
-                  </div>
-                </div>
+                <div class="card mb-3"><div class="card-body">
+                  <h6 class="fw-bold text-primary">Informasi Utama</h6>
+                  <p><strong>Tahun Lulus:</strong> ${data.tahun_lulus || '-'}</p>
+                  <p><strong>Kota:</strong> ${data.kota || '-'}</p>
+                </div></div>
+                <div class="card mb-3"><div class="card-body">
+                  <h6 class="fw-bold text-success">Riwayat Pekerjaan</h6>
+                  <p><strong>Perusahaan:</strong> ${data.nama_perusahaan || 'Belum ada data'}</p>
+                  <p><strong>Posisi:</strong> ${data.posisi || '-'}</p>
+                </div></div>
               </div>
             </div>`;
           break;
 
         case 'edit-profile':
-            area.innerHTML = `
-              <h3>Edit Profile</h3>
-              <form id="formUpdateFoto">
-                  <div class="mb-3">
-                      <label>Pilih Foto Profil (Max 5MB)</label>
-                      <input type="file" id="inputFoto" class="form-control" accept="image/*">
-                  </div>
-                  <button type="submit" class="btn btn-primary">Upload Foto</button>
-              </form>`;
-          
-            document.getElementById('formUpdateFoto').onsubmit = async (e) => {
-              e.preventDefault();
-              const file = document.getElementById('inputFoto').files[0];
-              if (!file) return alert('Pilih file dulu!');
-            
-              const formData = new FormData();
-              formData.append('foto', file);
-            
-              const userId = localStorage.getItem('userId');
-              const res = await fetch(`/api/user/upload-foto?id=${userId}`, {
-                  method: 'POST',
-                  body: formData
-              });
-              const result = await res.json();
-              if (result.success) {
-                  alert('Foto berhasil diupdate!');
-                  showSection('profile');
-              } else {
-                  alert(result.message);
-              }
-            };
-            break;
-
-        case 'pekerjaan':
-            area.innerHTML = `
-              <h3>Isi Data Pekerjaan</h3>
-              <form id="formPekerjaan">
-                  <div class="mb-3">
-                      <label>Nama Perusahaan</label>
-                      <input type="text" id="namaPerusahaan" class="form-control" required>
-                  </div>
-                  <div class="mb-3">
-                      <label>Posisi</label>
-                      <input type="text" id="posisi" class="form-control" required>
-                  </div>
-                  <button type="submit" class="btn btn-primary">Simpan</button>
-              </form>`;
-          
-            document.getElementById('formPekerjaan').onsubmit = async (e) => {
-              e.preventDefault();
-              const userId = localStorage.getItem('userId');
-              const payload = {
-                  nama_perusahaan: document.getElementById('namaPerusahaan').value,
-                  posisi: document.getElementById('posisi').value
-              };
-          
-              const res = await authorizedFetch(`/api/user/tambah-pekerjaan?id=${userId}`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(payload)
-              });
-          
-              if (res.success) {
-                    alert('Data berhasil disimpan!');
-                    showSection('profile'); 
-              } else {
-                  alert('Gagal menyimpan data.');
-              }
-            };
-            break;
-
-        case 'rekap':
-          area.innerHTML = `
-            <h3>Rekap Pekerjaan</h3>
-            <table class="table">
-              <thead><tr><th>Perusahaan</th><th>Posisi</th></tr></thead>
-              <tbody id="rekapBody"></tbody>
-            </table>`;
-        
-          const rekapData = await authorizedFetch(`/api/user/rekap-pekerjaan`);
-          const tbody = document.getElementById('rekapBody');
-        
-          if (rekapData.length > 0) {
-              tbody.innerHTML = rekapData.map(item => `
-                  <tr>
-                    <td>${item.nama_perusahaan}</td>
-                    <td>${item.posisi}</td>
-                  </tr>
-              `).join('');
-          } else {
-              tbody.innerHTML = `<tr><td colspan="2">Belum ada data pekerjaan.</td></tr>`;
-          }
+          area.innerHTML = `<h3>Edit Profile</h3><form id="formUpdateFoto"><div class="mb-3"><label>Pilih Foto Profil</label><input type="file" id="inputFoto" class="form-control" accept="image/*"></div><button type="submit" class="btn btn-primary">Upload Foto</button></form>`;
+          document.getElementById('formUpdateFoto').onsubmit = async (e) => {
+            e.preventDefault();
+            const file = document.getElementById('inputFoto').files[0];
+            if (!file) return alert('Pilih file dulu!');
+            const formData = new FormData(); formData.append('foto', file);
+            const res = await fetch(`/api/user/upload-foto?id=${userId}`, { method: 'POST', body: formData });
+            const result = await res.json();
+            if (result.success) { alert('Foto berhasil diupdate!'); showSection('profile'); }
+            else { alert(result.message); }
+          };
           break;
 
-        case 'password':
-          area.innerHTML = `<h3>Reset Password</h3><form id="formPassword"><div class="mb-3"><label>Password Baru</label><input type="password" class="form-control"></div><button type="submit" class="btn btn-danger">Reset</button></form>`;
+        case 'pekerjaan':
+          area.innerHTML = `<h3>Isi Data Pekerjaan</h3><form id="formPekerjaan"><div class="mb-3"><label>Nama Perusahaan</label><input type="text" id="namaPerusahaan" class="form-control" required></div><div class="mb-3"><label>Posisi</label><input type="text" id="posisi" class="form-control" required></div><button type="submit" class="btn btn-primary">Simpan</button></form>`;
+          document.getElementById('formPekerjaan').onsubmit = async (e) => {
+            e.preventDefault();
+            const res = await authorizedFetch(`/api/user/tambah-pekerjaan?id=${userId}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ nama_perusahaan: document.getElementById('namaPerusahaan').value, posisi: document.getElementById('posisi').value })
+            });
+            if (res.success) { alert('Data berhasil disimpan!'); showSection('profile'); }
+            else { alert('Gagal menyimpan data.'); }
+          };
+          break;
+
+        case 'rekap':
+          area.innerHTML = `<h3>Rekap Pekerjaan</h3><table class="table"><thead><tr><th>Perusahaan</th><th>Posisi</th></tr></thead><tbody id="rekapBody"></tbody></table>`;
+          const rekapData = await authorizedFetch(`/api/user/rekap-pekerjaan`);
+          const tbody = document.getElementById('rekapBody');
+          tbody.innerHTML = rekapData.length > 0 ? rekapData.map(item => `<tr><td>${item.nama_perusahaan}</td><td>${item.posisi}</td></tr>`).join('') : `<tr><td colspan="2">Belum ada data.</td></tr>`;
           break;
       }
     }
 
+    // Perbaikan Logika Redirect (Hanya pindahkan jika BELUM login)
     document.addEventListener('DOMContentLoaded', () => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    const role = localStorage.getItem('role');
-
-    // Hanya redirect jika memang berada di halaman login dan sudah login
-    if (isLoggedIn) {
-        if (role === 'admin') {
-            window.location.href = '/index.html';
-        } else {
-            window.location.href = '/user.html';
-        }
-    }
+      if (!localStorage.getItem('isLoggedIn')) {
+        window.location.replace('login.html');
+      }
     });
   </script>
 </body>

@@ -25,60 +25,59 @@
           </form>
           <p class="mt-3 text-center">
         Belum punya akun? <a href="register.html" class="text-decoration-none">Daftar di sini</a>
-            </p>
+          </p>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    // REVISI: Cek status login dan arahkan sesuai role
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    const userRole = localStorage.getItem('role');
+    // Hanya gunakan SATU tempat untuk pengecekan login saat halaman dimuat
+    document.addEventListener('DOMContentLoaded', () => {
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      const userRole = localStorage.getItem('role');
 
-    if (isLoggedIn) {
-      if (userRole === 'admin') {
-        window.location.href = 'index.html';
-      } else {
-        window.location.href = 'user.html';
+      if (isLoggedIn === 'true') {
+        if (userRole === 'admin') {
+          window.location.replace('index.html');
+        } else {
+          window.location.replace('user.html');
+        }
       }
-    }
+    });
 
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
-        try {
-          const response = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              username: document.getElementById('username').value,
-              password: document.getElementById('password').value
-            })
-          });
-      
-          const data = await response.json(); 
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value
+          })
+        });
+        
+        const data = await response.json(); 
+        
+        if (data.success) {
+          localStorage.setItem('isLoggedIn', 'true');
+          localStorage.setItem('role', data.role);
+          localStorage.setItem('userId', data.userId);
           
-          if (data.success) {
-              localStorage.setItem('isLoggedIn', 'true');
-              localStorage.setItem('role', data.role);
-              localStorage.setItem('userId', data.userId);
-              
-              alert('Login Berhasil sebagai ' + data.role);
-              
-              // Logika pengalihan setelah login baru
-              if (data.role === 'admin') {
-                  window.location.href = 'index.html';
-              } else {
-                  window.location.href = 'user.html'; 
-              }
+          if (data.role === 'admin') {
+            window.location.replace('index.html');
           } else {
-              alert('Login Gagal: ' + (data.message || 'Username/Password salah'));
+            window.location.replace('user.html');
           }
-        } catch (err) {
-          console.error("Error:", err);
-          alert('Terjadi kesalahan koneksi ke server.');
+        } else {
+          alert('Login Gagal: ' + (data.message || 'Username/Password salah'));
         }
+      } catch (err) {
+        console.error("Error:", err);
+        alert('Terjadi kesalahan koneksi ke server.');
+      }
     });
   </script>
 </body>
