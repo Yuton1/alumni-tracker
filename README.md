@@ -6,6 +6,14 @@ Kelas : Rekayasa Kebutuhan A
 
 Sistem pelacakan alumni yang dirancang untuk mengelola profil, riwayat pekerjaan, dan status verifikasi data alumni.
 
+akun Admin
+Username : admin
+Password : admin123
+
+akun Mahasiswa 
+Username : Siti 123
+Password : 12345678
+
 🔗 Link Akses
 - Source Code (GitHub): https://github.com/Yuton1/alumni-tracker.git
 - Link Publish : alumni-tracker-production-3af4.up.railway.app
@@ -37,8 +45,33 @@ ______________________________________________________________________
 |                  | PID alumni yang tidak     | validasi error)      |
 |                  |  terdaftar                |                      |
 |---------------------------------------------------------------------|
+|  Kegunaan        | Navigasi menu dashboard   | Pengguna dapat       |
+|                  |                           | berpindah antar menu |
+|                  |                           |                      |
+|---------------------------------------------------------------------|
 | Efisiensi        | Waktu akses data rekap    | BCepat (Query < 0    |
 |                  | pekerjaan dari databas    | .01 detik)           |
 |                  |                           |                      |
 |---------------------------------------------------------------------|
 
+Pengujian menggunakan lighthouse :
+Aplikasi pelacakan alumni yang dibangun dengan performa tinggi dan aksesibilitas maksimal.
+
+Status Proyek
+⚠️ Status: Dalam tahap pengembangan aktif / perbaikan deployment.
+(Catatan: Saat ini sedang dilakukan optimalisasi routing dan perbaikan infinite redirect pada sisi klien).
+
+Mengapa Alumni Tracker?
+mengutamakan pengalaman pengguna dengan performa yang dioptimalkan. Berikut adalah hasil audit Lighthouse terbaru:
+
+|---------------------------------------------------------------------|
+|               Metric                 |           Score              |
+|---------------------------------------------------------------------|
+|             Performance              |             93               |
+|---------------------------------------------------------------------|
+|             Accessibility            |             97               |
+|---------------------------------------------------------------------|
+|            Best Practices            |             96               |
+|---------------------------------------------------------------------|
+|                 SEO                  |             82               |
+|---------------------------------------------------------------------|
