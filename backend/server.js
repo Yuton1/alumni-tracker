@@ -182,9 +182,10 @@ app.post('/api/register', async (req, res) => {
 
 // --- RUTE STATIS ---
 app.use(express.static(path.join(__dirname, '../frontend')));
-app.get(/.*/, (req, res, next) => {
-    if (req.path.startsWith('/api')) return next();
-    res.sendFile(path.join(__dirname, '../frontend/index.html'));
+app.get('*', (req, res) => {
+    if (req.path.startsWith('/api')) return;
+    const filePath = path.join(__dirname, '../frontend', req.path === '/' ? 'index.html' : req.path);
+    res.sendFile(filePath);
 });
 
 app.listen(PORT, () => console.log(`Backend running at port ${PORT}`));

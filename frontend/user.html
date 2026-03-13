@@ -197,18 +197,21 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+    // 1. Cek apakah user sudah login
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     const role = localStorage.getItem('role');
 
-    // Hanya redirect jika memang berada di halaman login dan sudah login
-    if (isLoggedIn) {
-        if (role === 'admin') {
-            window.location.href = '/index.html';
-        } else {
-            window.location.href = '/user.html';
-        }
+    // 2. Jika BELUM login, paksa ke login.html
+    if (!isLoggedIn) {
+        window.location.href = 'login.html';
+        return;
     }
-    });
+
+    // 3. (Opsional) Jika user mencoba mengakses halaman admin, tendang ke user.html
+    if (role !== 'mahasiswa') { 
+        // Sesuaikan 'mahasiswa' dengan role yang Anda simpan di database
+    }
+  });
   </script>
 </body>
 </html>
