@@ -133,7 +133,7 @@
 
     // 1. Load Statistik
     async function updateStats() {
-      const res = await fetch('http://localhost:8080/api/stats');
+      const res = await fetch('/api/stats'); // Menggunakan jalur relatif
       const stats = await res.json();
       document.getElementById('statTeridentifikasi').textContent = stats['Teridentifikasi dari sumber publik'] || 0;
       document.getElementById('statVerifikasi').textContent = stats['Perlu Verifikasi Manual'] || 0;
@@ -143,7 +143,7 @@
 
     // 2. Load Antrean (Sesuai Pseudocode Tahap 2)
     async function loadAntrean() {
-      const res = await fetch('http://localhost:8080/api/antrean');
+      const res = await fetch('/api/antrean');
       currentData = await res.json();
       const tbody = document.querySelector('#tabelAntrean tbody');
       tbody.innerHTML = currentData.map(a => `
@@ -163,7 +163,7 @@
 
     // 3. Load Master (Menampilkan SEMUA termasuk Siti Nurhaliza)
     async function loadMaster() {
-      const res = await fetch('http://localhost:8080/api/master-alumni');
+      const res = await fetch('/api/antrean');
       currentData = await res.json();
       const tbody = document.querySelector('#tabelMaster tbody');
       tbody.innerHTML = currentData.map(a => `
@@ -201,7 +201,7 @@
     }
 
     async function trackAlumni(id) {
-      const res = await fetch(`http://localhost:3000/api/track/${id}`, { method: 'POST' });
+      const res = await fetch(`/api/track/${id}`, { method: 'POST' });
       const hasil = await res.json();
       if(hasil.success) {
         alert("Berhasil Track!\nStatus: " + hasil.status);
