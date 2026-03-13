@@ -8,7 +8,7 @@ Sistem pelacakan alumni yang dirancang untuk mengelola profil, riwayat pekerjaan
 
 🔗 Link Akses
 - Source Code (GitHub): https://github.com/Yuton1/alumni-tracker.git
-- Link Publish : -
+- Link Publish : alumni-tracker-production.up.railway.app
 
 🛠️ Pengembangan Sistem
 Aplikasi ini dikembangkan menggunakan arsitektur web dengan stack sebagai berikut:
