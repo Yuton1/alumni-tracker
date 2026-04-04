@@ -15,11 +15,22 @@ app.use(express.json());
 
 // --- KONFIGURASI MySQL ---
 const db = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
-    port: process.env.DB_PORT || 3306
+    host: 'localhost',
+    user: 'root',      // User default Laragon
+    password: '',      // Password default Laragon biasanya kosong
+    database: 'alumni_tracker', // Pastikan nama database ini sesuai di phpMyAdmin Anda
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
+
+db.getConnection((err, connection) => {
+    if (err) {
+        console.error("KONEKSI DATABASE GAGAL:", err.message);
+    } else {
+        console.log("Koneksi Database Berhasil Terhubung!");
+        connection.release();
+    }
 });
 
 // --- KONFIGURASI MULTER ---
@@ -126,17 +137,32 @@ app.post('/api/track/:id', async (req, res) => {
 
 app.get('/api/user/profile-lengkap', (req, res) => {
     const userId = req.query.id;
-    const sql = `SELECT u.*, m.nama AS nama_lengkap, m.prodi, m.tahun_lulus, m.kota, p.nama_perusahaan, p.posisi 
-                 FROM users u 
-                 JOIN masteralumni m ON u.alumni_id = m.id 
-                 LEFT JOIN pekerjaan_alumni p ON u.id = p.user_id 
-                 WHERE u.id = ? 
-                 ORDER BY p.id DESC LIMIT 1`;
+    
+    const sql = `
+        SELECT 
+            u.id, u.username, u.role, u.foto_profil, u.alumni_id,
+            m.nama AS nama_lengkap, m.prodi, m.tanggal_lulus, m.kota, m.fakultas,
+            p.nama_perusahaan, p.posisi, p.jenis_instansi, p.alamat_kerja, 
+            p.email_publik, p.no_hp, p.linkedin_url, p.ig_url, p.sosmed_kantor,
+            p.fb_url, p.tiktok_url
+        FROM users u 
+        LEFT JOIN masteralumni m ON u.alumni_id = m.id 
+        LEFT JOIN pekerjaan_alumni p ON u.id = p.user_id 
+        WHERE u.id = ? 
+        ORDER BY p.id DESC LIMIT 1`;
 
     db.query(sql, [userId], (err, result) => {
-        if (err) return res.status(500).json({ message: "Database error" });
-        if (result.length === 0) return res.status(404).json({ message: "Data tidak ditemukan" });
-        res.json(result[0]);
+        if (err) {
+            console.error("Database Error:", err);
+            return res.status(500).json({ message: "Gagal mengambil data" });
+        }
+        
+        if (result.length === 0) {
+            return res.status(404).json({ message: "User tidak ditemukan" });
+        }
+    
+        // ✅ PERBAIKAN: Kirim result (Ambil data pertama saja tanpa kurung siku array)
+        res.json(result); 
     });
 });
 
@@ -155,27 +181,76 @@ app.post('/api/user/upload-foto', (req, res) => {
 
 app.post('/api/user/tambah-pekerjaan', (req, res) => {
     const userId = req.query.id;
-    const { nama_perusahaan, posisi } = req.body;
-    const sql = `INSERT INTO pekerjaan_alumni (user_id, nama_perusahaan, posisi) 
-                 VALUES (?, ?, ?) 
-                 ON DUPLICATE KEY UPDATE nama_perusahaan = VALUES(nama_perusahaan), posisi = VALUES(posisi)`;
+    // Menerima semua data baru dari frontend
+    const { 
+        nama_perusahaan, posisi, jenis_instansi, alamat_kerja, 
+        email_publik, no_hp, linkedin_url, ig_url, sosmed_kantor 
+    } = req.body;
+
+    const sql = `INSERT INTO pekerjaan_alumni 
+                 (user_id, nama_perusahaan, posisi, jenis_instansi, alamat_kerja, email_publik, no_hp, linkedin_url, ig_url, sosmed_kantor) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE 
+                 nama_perusahaan=VALUES(nama_perusahaan), 
+                 posisi=VALUES(posisi), 
+                 jenis_instansi=VALUES(jenis_instansi), 
+                 alamat_kerja=VALUES(alamat_kerja),
+                 email_publik=VALUES(email_publik), 
+                 no_hp=VALUES(no_hp),
+                 linkedin_url=VALUES(linkedin_url), 
+                 ig_url=VALUES(ig_url),
+                 sosmed_kantor=VALUES(sosmed_kantor)`;
     
-    db.query(sql, [userId, nama_perusahaan, posisi], (err, result) => {
-        if (err) return res.status(500).json({ success: false, message: 'Gagal update' });
+    const values = [userId, nama_perusahaan, posisi, jenis_instansi, alamat_kerja, email_publik, no_hp, linkedin_url, ig_url, sosmed_kantor];
+
+    db.query(sql, values, (err, result) => {
+        if (err) return res.status(500).json({ success: false, message: 'Gagal update data: ' + err.message });
         res.json({ success: true });
     });
 });
 
 app.post('/api/register', async (req, res) => {
     const { username, password, alumni_id } = req.body;
-    db.query('SELECT id FROM users WHERE username = ?', [username], (err, results) => {
-        if (err) return res.status(500).json({ success: false, message: 'Database error saat cek user' });
-        if (results.length > 0) return res.status(400).json({ success: false, message: 'Username sudah digunakan' });
-        const sql = 'INSERT INTO users (username, password, alumni_id, role) VALUES (?, ?, ?, ?)';
-        const values = [username, password, alumni_id, 'mahasiswa'];
-        db.query(sql, values, (err, result) => {
-            if (err) return res.status(500).json({ success: false, message: 'Database error: ' + err.message });
-            res.json({ success: true });
+
+    // Log ke terminal untuk memantau data yang masuk
+    console.log(`Mencoba daftar: User=${username}, ID=${alumni_id}`);
+
+    // 1. Cek apakah ID Master Alumni valid dan terdaftar
+    db.query('SELECT id FROM masteralumni WHERE id = ?', [alumni_id], (err, alumniResults) => {
+        if (err) {
+            console.error("Error Master:", err.message);
+            return res.status(500).json({ success: false, message: 'Database error saat cek master' });
+        }
+        
+        if (alumniResults.length === 0) {
+            return res.status(400).json({ success: false, message: 'ID Master Alumni tidak ditemukan!' });
+        }
+
+        // 2. Cek apakah ID Master ini sudah diklaim/punya akun di tabel users
+        db.query('SELECT id FROM users WHERE alumni_id = ?', [alumni_id], (err, idResults) => {
+            if (err) return res.status(500).json({ success: false, message: 'Database error saat cek ID alumni' });
+            if (idResults.length > 0) return res.status(400).json({ success: false, message: 'ID Alumni ini sudah memiliki akun' });
+
+            // 3. Cek apakah Username sudah digunakan
+            db.query('SELECT id FROM users WHERE username = ?', [username], (err, userResults) => {
+                if (err) return res.status(500).json({ success: false, message: 'Database error saat cek username' });
+                if (userResults.length > 0) return res.status(400).json({ success: false, message: 'Username sudah digunakan' });
+
+                // 4. Jika semua valid, simpan ke database
+                // Menambahkan NULL untuk kolom yang tidak diisi agar tidak error 500
+                const sql = 'INSERT INTO users (username, password, alumni_id, role, foto_profil, email, tahun_lulus) VALUES (?, ?, ?, ?, NULL, NULL, NULL)';
+                const values = [username, password, alumni_id, 'alumni'];
+                
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        // Ini akan muncul di terminal VS Code Anda jika masih gagal
+                        console.error("GAGAL INSERT:", err.sqlMessage || err.message); 
+                        return res.status(500).json({ success: false, message: 'Gagal simpan: ' + (err.sqlMessage || err.message) });
+                    }
+                    console.log("Registrasi Berhasil!");
+                    res.json({ success: true, message: 'Registrasi Berhasil!' });
+                });
+            });
         });
     });
 });

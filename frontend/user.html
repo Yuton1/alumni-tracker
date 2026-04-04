@@ -10,7 +10,7 @@
 
   <nav class="navbar navbar-dark bg-dark shadow-sm mb-4">
     <div class="container">
-      <span class="navbar-brand fw-bold">Alumni Dashboard</span>
+      <span class="navbar-brand fw-bold">Dashboard</span>
       <button class="btn btn-outline-light btn-sm" onclick="logout()">Logout</button>
     </div>
   </nav>
@@ -56,37 +56,80 @@
       const userId = localStorage.getItem('userId');
       
       switch(section) {
-        case 'profile':
-          area.innerHTML = `<h3>Profile Anda</h3><div id="profileData">Memuat profil...</div>`;
-          const data = await authorizedFetch(`/api/user/profile-lengkap?id=${userId}&t=${Date.now()}`);
-          area.innerHTML = `
-            <h3>Profile Anda</h3><hr>
-            <div class="row">
-              <div class="col-md-4 text-center">
-                <img src="${data.foto_profil}" class="img-fluid rounded shadow-sm mb-3">
-                <h5 class="fw-bold">${data.nama_lengkap}</h5>
-                <span class="badge bg-info text-dark">${data.prodi}</span>
-              </div>
-              <div class="col-md-8">
-                <div class="card mb-3"><div class="card-body">
-                  <h6 class="fw-bold text-primary">Informasi Utama</h6>
-                  <p><strong>Tahun Lulus:</strong> ${data.tahun_lulus || '-'}</p>
-                  <p><strong>Kota:</strong> ${data.kota || '-'}</p>
-                </div></div>
-                <div class="card mb-3"><div class="card-body">
-                  <h6 class="fw-bold text-success">Riwayat Pekerjaan</h6>
-                  <p><strong>Perusahaan:</strong> ${data.nama_perusahaan || 'Belum ada data'}</p>
-                  <p><strong>Posisi:</strong> ${data.posisi || '-'}</p>
-                </div></div>
-              </div>
-            </div>`;
-          break;
+          case 'profile':
+              area.innerHTML = `<h3>Profile Anda</h3><div id="profileData">Memuat profil...</div>`;
+              try {
+                  const response = await authorizedFetch(`/api/user/profile-lengkap?id=${userId}&t=${Date.now()}`);
+                  
+                  // Pastikan response ada dan bukan array kosong
+                  if (!response || (Array.isArray(response) && response.length === 0)) {
+                      area.innerHTML = `<div class="alert alert-warning">Data profil belum lengkap. Silakan isi data pekerjaan dulu.</div>`;
+                      return;
+                  }
+                
+                  // MENGAMBIL DATA PERTAMA DARI ARRAY
+                  const data = Array.isArray(response) ? response : response;
+                  const baseURL = "http://localhost:3000";
+                
+                  // Logika Foto Profil
+                  const fotoUrl = data.foto_profil ? 
+                      (data.foto_profil.startsWith('http') ? data.foto_profil : baseURL + data.foto_profil) : 
+                      `https://ui-avatars.com/api/?name=${data.nama_lengkap || 'User'}&background=random`;
+                
+                  area.innerHTML = `
+                      <h3>Profile Anda</h3><hr>
+                      <div class="row">
+                          <div class="col-md-4 text-center">
+                              <img src="${fotoUrl}" 
+                                   class="img-fluid rounded shadow-sm mb-3" 
+                                   style="max-height: 250px; width: 100%; object-fit: cover;"
+                                   onerror="this.src='https://ui-avatars.com/api/?name=Alumni'">
+                          
+                              <h5 class="fw-bold">${data.nama_lengkap || 'Alumni'}</h5>
+                              <p class="text-muted small">User ID: ${data.id || '-'}</p>
+                              <span class="badge bg-primary mb-3">${data.prodi || 'Prodi Tidak Terdaftar'}</span>
+                          
+                              <div class="mt-2 d-flex justify-content-center gap-3">
+                                  ${data.linkedin_url ? `<a href="${data.linkedin_url}" target="_blank" class="text-primary"><i class="fab fa-linkedin fa-2x"></i></a>` : ''}
+                                  ${data.ig_url ? `<a href="${data.ig_url}" target="_blank" class="text-danger"><i class="fab fa-instagram fa-2x"></i></a>` : ''}
+                                  ${data.fb_url ? `<a href="${data.fb_url}" target="_blank" class="text-primary"><i class="fab fa-facebook fa-2x"></i></a>` : ''}
+                                  ${data.tiktok_url ? `<a href="${data.tiktok_url}" target="_blank" class="text-dark"><i class="fab fa-tiktok fa-2x"></i></a>` : ''}
+                              </div>
+                          </div>
+                          <div class="col-md-8">
+                              <div class="card mb-3 shadow-sm border-0">
+                                  <div class="card-body">
+                                      <h6 class="fw-bold text-primary border-bottom pb-2">Informasi Akademik & Kontak</h6>
+                                      <p class="mb-1"><strong>Program Studi:</strong> ${data.prodi || '-'}</p>
+                                      <p class="mb-1"><strong>Tanggal Lulus:</strong> ${data.tanggal_lulus || '-'}</p>
+                                      <p class="mb-1"><strong>Domisili:</strong> ${data.kota || '-'}</p>
+                                      <p class="mb-1"><strong>Fakultas:</strong> ${data.fakultas || '-'}</p>
+                                      <hr>
+                                      <p class="mb-1"><strong>Email Publik:</strong> ${data.email_publik || '-'}</p>
+                                      <p class="mb-0"><strong>WhatsApp/HP:</strong> ${data.no_hp || '-'}</p>
+                                  </div>
+                              </div>
+                              <div class="card mb-3 shadow-sm border-0">
+                                  <div class="card-body">
+                                      <h6 class="fw-bold text-success border-bottom pb-2">Detail Pekerjaan Saat Ini</h6>
+                                      <p class="mb-1"><strong>Instansi/Perusahaan:</strong> ${data.nama_perusahaan || '-'}</p>
+                                      <p class="mb-1"><strong>Jabatan:</strong> ${data.posisi || '-'}</p>
+                                      <p class="mb-1"><strong>Kategori:</strong> <span class="badge bg-secondary">${data.jenis_instansi || 'Belum Diatur'}</span></p>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>`;
+              } catch (error) {
+                  console.error("Error Detail:", error);
+                  area.innerHTML = `<div class="alert alert-danger">Gagal memuat profil. Silakan hubungi admin.</div>`;
+              }
+              break;
 
         case 'edit-profile':
           area.innerHTML = `<h3>Edit Profile</h3><form id="formUpdateFoto"><div class="mb-3"><label>Pilih Foto Profil</label><input type="file" id="inputFoto" class="form-control" accept="image/*"></div><button type="submit" class="btn btn-primary">Upload Foto</button></form>`;
           document.getElementById('formUpdateFoto').onsubmit = async (e) => {
             e.preventDefault();
-            const file = document.getElementById('inputFoto').files[0];
+            const file = document.getElementById('inputFoto').files;
             if (!file) return alert('Pilih file dulu!');
             const formData = new FormData(); formData.append('foto', file);
             const res = await fetch(`/api/user/upload-foto?id=${userId}`, { method: 'POST', body: formData });
@@ -97,29 +140,81 @@
           break;
 
         case 'pekerjaan':
-          area.innerHTML = `<h3>Isi Data Pekerjaan</h3><form id="formPekerjaan"><div class="mb-3"><label>Nama Perusahaan</label><input type="text" id="namaPerusahaan" class="form-control" required></div><div class="mb-3"><label>Posisi</label><input type="text" id="posisi" class="form-control" required></div><button type="submit" class="btn btn-primary">Simpan</button></form>`;
+          area.innerHTML = `
+            <h3>Isi Data Pekerjaan & Sosmed</h3>
+            <form id="formPekerjaan" class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Nama Perusahaan</label>
+                <input type="text" id="namaPerusahaan" class="form-control" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Posisi/Jabatan</label>
+                <input type="text" id="posisi" class="form-control" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Kategori Instansi</label>
+                <select id="jenisInstansi" class="form-select">
+                  <option value="Swasta">Swasta</option>
+                  <option value="PNS">PNS</option>
+                  <option value="Wirausaha">Wirausaha</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Email Publik</label>
+                <input type="email" id="emailPublik" class="form-control">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">LinkedIn URL</label>
+                <input type="url" id="linkedin" class="form-control" placeholder="https://linkedin.com/in/...">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Instagram URL</label>
+                <input type="url" id="instagram" class="form-control">
+              </div>
+              <div class="col-12 text-end">
+                <button type="submit" class="btn btn-primary">Simpan Data Lengkap</button>
+              </div>
+            </form>`;
+
           document.getElementById('formPekerjaan').onsubmit = async (e) => {
             e.preventDefault();
+            const payload = {
+                nama_perusahaan: document.getElementById('namaPerusahaan').value,
+                posisi: document.getElementById('posisi').value,
+                jenis_instansi: document.getElementById('jenisInstansi').value,
+                email_publik: document.getElementById('emailPublik').value,
+                linkedin_url: document.getElementById('linkedin').value,
+                ig_url: document.getElementById('instagram').value,
+                alamat_kerja: "", 
+                no_hp: "",
+                sosmed_kantor: ""
+            };
+            
             const res = await authorizedFetch(`/api/user/tambah-pekerjaan?id=${userId}`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ nama_perusahaan: document.getElementById('namaPerusahaan').value, posisi: document.getElementById('posisi').value })
+              body: JSON.stringify(payload)
             });
-            if (res.success) { alert('Data berhasil disimpan!'); showSection('profile'); }
-            else { alert('Gagal menyimpan data.'); }
+            if (res.success) { alert('Data berhasil diperbarui!'); showSection('profile'); }
+            else { alert('Gagal menyimpan.'); }
           };
           break;
 
         case 'rekap':
           area.innerHTML = `<h3>Rekap Pekerjaan</h3><table class="table"><thead><tr><th>Perusahaan</th><th>Posisi</th></tr></thead><tbody id="rekapBody"></tbody></table>`;
-          const rekapData = await authorizedFetch(`/api/user/rekap-pekerjaan`);
-          const tbody = document.getElementById('rekapBody');
-          tbody.innerHTML = rekapData.length > 0 ? rekapData.map(item => `<tr><td>${item.nama_perusahaan}</td><td>${item.posisi}</td></tr>`).join('') : `<tr><td colspan="2">Belum ada data.</td></tr>`;
+          try {
+              const rekapData = await authorizedFetch(`/api/user/rekap-pekerjaan`);
+              const tbody = document.getElementById('rekapBody');
+              tbody.innerHTML = rekapData.length > 0 ? 
+                rekapData.map(item => `<tr><td>${item.nama_perusahaan}</td><td>${item.posisi}</td></tr>`).join('') : 
+                `<tr><td colspan="2" class="text-center">Belum ada data.</td></tr>`;
+          } catch (e) {
+              document.getElementById('rekapBody').innerHTML = '<tr><td colspan="2">Gagal memuat data.</td></tr>';
+          }
           break;
       }
     }
 
-    // Perbaikan Logika Redirect (Hanya pindahkan jika BELUM login)
     document.addEventListener('DOMContentLoaded', () => {
       if (!localStorage.getItem('isLoggedIn')) {
         window.location.replace('login.html');

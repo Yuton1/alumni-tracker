@@ -8,20 +8,29 @@
 <body class="bg-light">
   <div class="container mt-5">
     <div class="card shadow p-4 mx-auto" style="max-width: 400px;">
-      <h3>Registrasi Akun</h3>
+      <h3 class="text-center mb-4">Registrasi Akun</h3>
       <form id="registerForm">
         <div class="mb-3">
-          <label>Username</label>
-          <input type="text" id="username" class="form-control" required>
+          <label class="form-label">Username (Gunakan Nama Lengkap)</label>
+          <input type="text" id="username" class="form-control" placeholder="Contoh: Hendro Ari Wibowo" required>
         </div>
+
         <div class="mb-3">
-          <label>Password</label>
+          <label class="form-label">ID Master Alumni</label>
+          <input type="number" id="alumniId" class="form-control" placeholder="Masukkan ID dari Administrasi" required>
+          <div class="form-text text-danger">ID ini diperlukan untuk validasi data kelulusan.</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Password</label>
           <input type="password" id="password" class="form-control" required>
         </div>
+
         <div class="mb-3">
-          <label>Pilih Data Alumni (ID)</label>
-          <input type="number" id="alumniId" class="form-control" placeholder="Masukkan ID dari Master Alumni" required>
+          <label class="form-label">Konfirmasi Password</label>
+          <input type="password" id="confirmPassword" class="form-control" required>
         </div>
+
         <button type="submit" class="btn btn-success w-100">Daftar Sekarang</button>
       </form>
       <p class="mt-3 text-center">Sudah punya akun? <a href="login.html" class="text-decoration-none">Login di sini</a></p>
@@ -31,30 +40,48 @@
   <script>
     document.getElementById('registerForm').onsubmit = async (e) => {
       e.preventDefault();
+
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      // Validasi konfirmasi password di sisi klien
+      if (password !== confirmPassword) {
+        alert('Konfirmasi password tidak cocok!');
+        return;
+      }
+
       const payload = {
         username: document.getElementById('username').value,
-        password: document.getElementById('password').value,
+        password: password,
         alumni_id: document.getElementById('alumniId').value
       };
 
-      const res = await fetch('/api/antrean', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (data.success) {
-        alert('Registrasi berhasil! Silakan login.');
-        window.location.href = 'login.html';
-      } else {
-        alert('Gagal: ' + data.message);
+      try {
+        // Pastikan endpoint API sudah benar (misal: /api/register)
+        const res = await fetch('/api/register', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        
+        if (data.success) {
+          alert('Registrasi berhasil! Silakan login.');
+          window.location.href = 'login.html';
+        } else {
+          alert('Gagal: ' + data.message);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan koneksi ke server.');
       }
     };
 
     document.addEventListener('DOMContentLoaded', () => {
-    if (localStorage.getItem('token')) {
-        window.location.href = 'user.html'; // Redirect ke dashboard jika sudah login
-    }
+      if (localStorage.getItem('token')) {
+        window.location.href = 'user.html'; 
+      }
     });
   </script>
 </body>
