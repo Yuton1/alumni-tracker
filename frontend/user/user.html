@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Alumni</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root { --bg:#f3f7ff; --side:#0f172a; --line:#d9e1f2; --brand:#2563eb; }
+    body { margin:0; font-family:'Poppins',sans-serif; background:var(--bg); color:#1f2937; }
+    .shell { display:flex; min-height:100vh; }
+    .sidebar { width:260px; background:linear-gradient(180deg,#0f172a,#1e293b); color:#e2e8f0; transition:.25s; }
+    .sidebar.collapsed { width:86px; }
+    .brand { height:72px; display:flex; align-items:center; gap:10px; padding:0 16px; border-bottom:1px solid rgba(255,255,255,.14); }
+    .brand i { width:38px; height:38px; border-radius:12px; background:linear-gradient(135deg,#2563eb,#38bdf8); display:flex; align-items:center; justify-content:center; color:#fff; }
+    .brand-text { font-weight:600; white-space:nowrap; }
+    .sidebar.collapsed .brand-text,.sidebar.collapsed .menu-text { display:none; }
+    .menu { padding:12px 8px; display:flex; flex-direction:column; gap:6px; }
+    .menu button { border:none; background:transparent; color:#e2e8f0; text-align:left; border-radius:10px; padding:10px 12px; display:flex; gap:10px; align-items:center; }
+    .menu button:hover { background:rgba(37,99,235,.15); }
+    .menu button.active { background:linear-gradient(135deg,#2563eb,#38bdf8); color:#fff; box-shadow:0 8px 18px rgba(37,99,235,.35); }
+    .main { flex:1; padding:18px; }
+    .top { background:#fff; border:1px solid var(--line); border-radius:16px; padding:14px; display:flex; justify-content:space-between; align-items:center; gap:10px; box-shadow:0 10px 25px rgba(15,23,42,.08); }
+    .top h1 { margin:0; font-size:1.1rem; }
+    .top p { margin:0; font-size:.82rem; color:#64748b; }
+    .btn-soft { border:1px solid #bfd1f1; background:#fff; color:#1d4ed8; border-radius:10px; padding:7px 12px; font-size:.85rem; }
+    .summary { margin-top:14px; background:linear-gradient(130deg,#1e3a8a,#0284c7); color:#f8fafc; border-radius:16px; padding:14px; }
+    .summary .avatar { width:68px; height:68px; border-radius:16px; object-fit:cover; border:2px solid rgba(255,255,255,.5); }
+    .summary h5 { margin:0; font-size:1rem; }
+    .summary p { margin:0; font-size:.8rem; opacity:.92; }
+    .content { margin-top:14px; background:#fff; border:1px solid var(--line); border-radius:16px; padding:16px; min-height:360px; box-shadow:0 10px 25px rgba(15,23,42,.08); }
+    @media (max-width:991px){ .sidebar{position:fixed;z-index:20;height:100vh;} .sidebar.collapsed{transform:translateX(-100%);width:260px;} .main{width:100%;} }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand"><i class="fas fa-user-graduate"></i><span class="brand-text">Alumni Dashboard</span></div>
+      <div class="menu">
+        <button class="active" data-section="dashboarduser"><i class="fas fa-house-user"></i><span class="menu-text">Dashboard</span></button>
+        <button data-section="akademik"><i class="fas fa-id-badge"></i><span class="menu-text">Akademik</span></button>
+        <button data-section="datapekerjaan"><i class="fas fa-briefcase"></i><span class="menu-text">Data Pekerjaan</span></button>
+        <button data-section="mediasosial"><i class="fas fa-hashtag"></i><span class="menu-text">Media Sosial</span></button>
+        <button data-section="gantifoto"><i class="fas fa-camera"></i><span class="menu-text">Ganti Foto</span></button>
+        <button id="logoutButton"><i class="fas fa-sign-out-alt"></i><span class="menu-text">Logout</span></button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="top">
+        <div>
+          <h1 id="pageTitle">Dashboard User</h1>
+          <p id="pageSubtitle">Ringkasan data profil penting Anda dalam satu tampilan.</p>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn-soft" id="toggleSidebarButton"><i class="fas fa-bars me-1"></i>Menu</button>
+          <button class="btn-soft" id="refreshProfileButton"><i class="fas fa-rotate me-1"></i>Refresh</button>
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <img id="summaryPhoto" class="avatar" src="https://ui-avatars.com/api/?name=Alumni" alt="Foto">
+          <div>
+            <h5 id="summaryName">Memuat profile...</h5>
+            <p id="summaryProdi">Program studi</p>
+            <p id="summaryInfo">Fakultas - Domisili</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="content" id="contentArea">
+        <div class="text-muted">Memuat...</div>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const meta = {
+      dashboarduser: { title: 'Dashboard User', subtitle: 'Foto, profil, sosial media, dan pekerjaan terbaru.' },
+      akademik: { title: 'Profil Akademik', subtitle: 'Informasi utama alumni.' },
+      datapekerjaan: { title: 'Data Pekerjaan', subtitle: 'Rekap, edit, dan hapus pekerjaan.' },
+      mediasosial: { title: 'Media Sosial', subtitle: 'Simpan FB, TikTok, dan lainnya.' },
+      gantifoto: { title: 'Ganti Foto Profil', subtitle: 'Upload foto profil terbaru.' }
+    };
+
+    const fileMap = {
+      dashboarduser: 'Profile/dashboarduser.html',
+      akademik: 'Profile/akademik.html',
+      datapekerjaan: 'Profile/datapekerjaan.html',
+      mediasosial: 'Profile/mediasosial.html',
+      gantifoto: 'Profile/gantifoto.html'
+    };
+
+    const state = { activeSection: 'dashboarduser', profile: null, rekap: [], editingPekerjaanId: null, timer: null };
+
+    function getToken() {
+      const token = localStorage.getItem('token');
+      if (!token || token === 'undefined' || token === 'null') return null;
+      return token;
+    }
+
+    function getUserId() {
+      const id = Number.parseInt(localStorage.getItem('userId'), 10);
+      return Number.isNaN(id) || id <= 0 ? null : id;
+    }
+
+    function buildAvatarUrl(name = 'Alumni') {
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0d6efd&color=fff`;
+    }
+
+    function normalizeFotoPath(rawPath) {
+      if (!rawPath) return '';
+      const value = String(rawPath).trim();
+      if (!value) return '';
+      if (value.startsWith('http://') || value.startsWith('https://')) return value;
+      if (value.startsWith('/uploads/')) return value;
+      if (value.startsWith('uploads/')) return `/${value}`;
+      if (value.startsWith('/')) return value;
+      return `/uploads/${value}`;
+    }
+
+    function applyImageWithFallback(imgElement, rawPath, fallbackUrl) {
+      if (!imgElement) return;
+      const safeFallback = fallbackUrl || buildAvatarUrl();
+      const normalizedPath = normalizeFotoPath(rawPath);
+
+      imgElement.onerror = () => {
+        imgElement.onerror = null;
+        imgElement.src = safeFallback;
+      };
+
+      imgElement.src = normalizedPath || safeFallback;
+    }
+
+    function showToast(message, type = 'primary') {
+      const id = `toast-${Date.now()}`;
+      const html = `<div id="${id}" class="toast text-bg-${type} border-0"><div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`;
+      document.getElementById('toastContainer').insertAdjacentHTML('beforeend', html);
+      const el = document.getElementById(id);
+      new bootstrap.Toast(el, { delay: 3000 }).show();
+      el.addEventListener('hidden.bs.toast', () => el.remove());
+    }
+
+    function logout() {
+      ['token','userId','username','role','isLoggedIn'].forEach((k) => localStorage.removeItem(k));
+      window.location.replace('../login.html');
+    }
+
+    async function authorizedFetch(url, options = {}) {
+      const headers = new Headers(options.headers || {});
+      if (!(options.body instanceof FormData) && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+      const token = getToken();
+      if (token) headers.set('Authorization', `Bearer ${token}`);
+
+      const res = await fetch(url, { ...options, headers });
+      if (res.status === 401) { showToast('Sesi habis. Login ulang.', 'warning'); setTimeout(logout, 800); throw new Error('Unauthorized'); }
+
+      let data = {};
+      try { data = await res.json(); } catch (_) { data = {}; }
+      if (!res.ok) throw new Error(data.message || 'Terjadi kesalahan server.');
+      return data;
+    }
+
+    function setMenuActive(section) {
+      document.querySelectorAll('.menu button[data-section]').forEach((b) => b.classList.toggle('active', b.dataset.section === section));
+      const info = meta[section] || meta.akademik;
+      document.getElementById('pageTitle').textContent = info.title;
+      document.getElementById('pageSubtitle').textContent = info.subtitle;
+    }
+
+    function updateSummary(profile) {
+      const name = profile?.nama_lengkap || localStorage.getItem('username') || 'Alumni';
+      const fallbackAvatar = buildAvatarUrl(name);
+      document.getElementById('summaryName').textContent = name;
+      document.getElementById('summaryProdi').textContent = profile?.prodi || 'Program studi belum ada';
+      document.getElementById('summaryInfo').textContent = `${profile?.fakultas || 'Fakultas'} - ${profile?.kota || 'Domisili'}`;
+      applyImageWithFallback(document.getElementById('summaryPhoto'), profile?.foto_profil, fallbackAvatar);
+    }
+
+    async function refreshProfile() {
+      const userId = getUserId();
+      if (!userId) throw new Error('User ID tidak valid.');
+      const profile = await authorizedFetch(`/api/user/profile-lengkap?id=${userId}&t=${Date.now()}`);
+      state.profile = profile;
+      updateSummary(profile);
+      return profile;
+    }
+
+    async function loadSection(section) {
+      const area = document.getElementById('contentArea');
+      setMenuActive(section);
+      state.activeSection = section;
+      area.innerHTML = '<div class="text-muted">Memuat section...</div>';
+
+      const res = await fetch(fileMap[section], { cache: 'no-store' });
+      if (!res.ok) throw new Error('Template section gagal dimuat.');
+      area.innerHTML = await res.text();
+      bindSection(section);
+      hydrateSection(section);
+    }
+
+    function hydrateSection(section) {
+      const p = state.profile || {};
+
+      if (section === 'dashboarduser') {
+        const fullName = p.nama_lengkap || localStorage.getItem('username') || 'Alumni';
+        const fallbackAvatar = buildAvatarUrl(fullName);
+
+        applyImageWithFallback(document.getElementById('dashPhoto'), p.foto_profil, fallbackAvatar);
+
+        const map = {
+          dashWelcomeName: fullName,
+          dashNama: fullName,
+          dashUsername: p.username || '-',
+          dashProdi: p.prodi || '-',
+          dashFakultas: p.fakultas || '-',
+          dashKota: p.kota || '-',
+          dashTanggalLulus: p.tanggal_lulus || '-',
+          dashEmail: p.email_publik || '-',
+          dashNoHp: p.no_hp || '-',
+          dashPerusahaan: p.nama_perusahaan || '-',
+          dashPosisi: p.posisi || '-',
+          dashJenisInstansi: p.jenis_instansi || '-'
+        };
+        Object.entries(map).forEach(([id, value]) => {
+          const node = document.getElementById(id);
+          if (node) node.textContent = value;
+        });
+
+        const socials = [
+          { id: 'dashLinkedinItem', url: p.linkedin_url || '' },
+          { id: 'dashInstagramItem', url: p.ig_url || '' },
+          { id: 'dashFacebookItem', url: p.fb_url || '' },
+          { id: 'dashTiktokItem', url: p.tiktok_url || '' }
+        ];
+
+        let hasSocial = false;
+        socials.forEach((item) => {
+          const node = document.getElementById(item.id);
+          if (!node) return;
+          if (item.url) {
+            node.href = item.url;
+            node.classList.remove('d-none');
+            hasSocial = true;
+          } else {
+            node.href = '#';
+            node.classList.add('d-none');
+          }
+        });
+
+        const noSocial = document.getElementById('dashNoSocial');
+        if (noSocial) {
+          noSocial.classList.toggle('d-none', hasSocial);
+        }
+      }
+
+      if (section === 'akademik') {
+        const map = {
+          akademikNama: p.nama_lengkap || '-',
+          akademikUsername: p.username || '-',
+          akademikProdi: p.prodi || '-',
+          akademikFakultas: p.fakultas || '-',
+          akademikTanggalLulus: p.tanggal_lulus || '-',
+          akademikDomisili: p.kota || '-',
+          akademikEmailPublik: p.email_publik || '-',
+          akademikNoHp: p.no_hp || '-'
+        };
+        Object.entries(map).forEach(([id, value]) => { const n = document.getElementById(id); if (n) n.value = value; });
+      }
+
+      if (section === 'mediasosial') {
+        const map = {
+          linkedinUrl: p.linkedin_url || '', instagramUrl: p.ig_url || '', facebookUrl: p.fb_url || '',
+          tiktokUrl: p.tiktok_url || '', emailPublikSosmed: p.email_publik || '', noHpSosmed: p.no_hp || ''
+        };
+        Object.entries(map).forEach(([id, value]) => { const n = document.getElementById(id); if (n) n.value = value; });
+      }
+
+      if (section === 'gantifoto') {
+        const prev = document.getElementById('previewFotoProfil');
+        if (prev) {
+          const fallbackAvatar = buildAvatarUrl(p.nama_lengkap || localStorage.getItem('username') || 'Alumni');
+          applyImageWithFallback(prev, p.foto_profil, fallbackAvatar);
+        }
+      }
+
+      if (section === 'datapekerjaan') {
+        const map = {
+          pekerjaanId: p.pekerjaan_id || '', namaPerusahaan: p.nama_perusahaan || '', posisi: p.posisi || '',
+          alamatKerja: p.alamat_kerja || '', emailPublik: p.email_publik || '', noHp: p.no_hp || ''
+        };
+        Object.entries(map).forEach(([id, value]) => { const n = document.getElementById(id); if (n) n.value = value; });
+        applyKategoriValue(p.jenis_instansi || '');
+        state.editingPekerjaanId = p.pekerjaan_id || null;
+        updatePekerjaanMode();
+        loadRekapPekerjaan();
+      }
+    }
+
+    function applyKategoriValue(value) {
+      const select = document.getElementById('jenisInstansi');
+      const wrap = document.getElementById('jenisInstansiLainnyaWrap');
+      const custom = document.getElementById('jenisInstansiLainnya');
+      if (!select || !wrap || !custom) return;
+      const preset = ['Swasta','PNS','Wirausaha','BUMN','Pendidikan','Freelance'];
+      if (preset.includes(value)) { select.value = value; wrap.classList.add('d-none'); custom.value = ''; return; }
+      if (value && value !== '-') { select.value = 'Lainnya'; wrap.classList.remove('d-none'); custom.value = value; return; }
+      select.value = 'Swasta'; wrap.classList.add('d-none'); custom.value = '';
+    }
+
+    function getKategoriValue() {
+      const select = document.getElementById('jenisInstansi');
+      const custom = document.getElementById('jenisInstansiLainnya');
+      if (!select) return '';
+      return select.value === 'Lainnya' ? (custom?.value || '').trim() : select.value;
+    }
+
+    function resetPekerjaanForm() {
+      const form = document.getElementById('formPekerjaan');
+      if (!form) return;
+      form.reset();
+      document.getElementById('pekerjaanId').value = '';
+      state.editingPekerjaanId = null;
+      applyKategoriValue('');
+      updatePekerjaanMode();
+    }
+
+    function updatePekerjaanMode() {
+      const label = document.getElementById('submitPekerjaanLabel');
+      const cancel = document.getElementById('cancelEditPekerjaan');
+      if (!label || !cancel) return;
+      const isEdit = Boolean(state.editingPekerjaanId);
+      label.textContent = isEdit ? 'Update Pekerjaan' : 'Simpan Pekerjaan';
+      cancel.classList.toggle('d-none', !isEdit);
+    }
+
+    async function loadRekapPekerjaan() {
+      const userId = getUserId();
+      const body = document.getElementById('rekapPekerjaanBody');
+      if (!body || !userId) return;
+      body.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Memuat data...</td></tr>';
+      try {
+        const rows = await authorizedFetch(`/api/user/rekap-pekerjaan?id=${userId}&t=${Date.now()}`);
+        state.rekap = Array.isArray(rows) ? rows : [];
+        if (!state.rekap.length) { body.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Belum ada data pekerjaan.</td></tr>'; return; }
+        body.innerHTML = state.rekap.map((item, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${item.nama_perusahaan || '-'}</td>
+            <td>${item.posisi || '-'}</td>
+            <td>${item.jenis_instansi || '-'}</td>
+            <td>
+              <button class="btn btn-sm btn-outline-primary me-1" data-action="edit" data-id="${item.id}"><i class="fas fa-pen"></i></button>
+              <button class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${item.id}"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        body.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-3">${e.message}</td></tr>`;
+      }
+    }
+
+    async function submitPekerjaan(e) {
+      e.preventDefault();
+      const userId = getUserId();
+      if (!userId) return;
+
+      const payload = {
+        nama_perusahaan: document.getElementById('namaPerusahaan').value.trim(),
+        posisi: document.getElementById('posisi').value.trim(),
+        jenis_instansi: getKategoriValue(),
+        alamat_kerja: document.getElementById('alamatKerja').value.trim(),
+        email_publik: document.getElementById('emailPublik').value.trim(),
+        no_hp: document.getElementById('noHp').value.trim(),
+        linkedin_url: state.profile?.linkedin_url || '',
+        ig_url: state.profile?.ig_url || '',
+        fb_url: state.profile?.fb_url || '',
+        tiktok_url: state.profile?.tiktok_url || '',
+        sosmed_kantor: ''
+      };
+
+      if (!payload.nama_perusahaan || !payload.posisi) { showToast('Nama perusahaan dan posisi wajib diisi.', 'warning'); return; }
+      if (!payload.jenis_instansi) { showToast('Kategori instansi wajib diisi.', 'warning'); return; }
+
+      try {
+        if (state.editingPekerjaanId) {
+          await authorizedFetch(`/api/user/pekerjaan/${state.editingPekerjaanId}?id=${userId}`, { method:'PUT', body: JSON.stringify(payload) });
+          showToast('Data pekerjaan berhasil diperbarui.', 'success');
+        } else {
+          await authorizedFetch(`/api/user/tambah-pekerjaan?id=${userId}`, { method:'POST', body: JSON.stringify(payload) });
+          showToast('Data pekerjaan berhasil ditambahkan.', 'success');
+        }
+        resetPekerjaanForm();
+        await refreshProfile();
+        await loadRekapPekerjaan();
+      } catch (err) { showToast(err.message, 'danger'); }
+    }
+
+    async function handleRekapAction(e) {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const id = Number.parseInt(btn.dataset.id, 10);
+      if (!id) return;
+
+      if (btn.dataset.action === 'edit') {
+        const row = state.rekap.find((x) => x.id === id);
+        if (!row) return;
+        document.getElementById('pekerjaanId').value = row.id || '';
+        document.getElementById('namaPerusahaan').value = row.nama_perusahaan || '';
+        document.getElementById('posisi').value = row.posisi || '';
+        document.getElementById('alamatKerja').value = row.alamat_kerja || '';
+        document.getElementById('emailPublik').value = row.email_publik || '';
+        document.getElementById('noHp').value = row.no_hp || '';
+        applyKategoriValue(row.jenis_instansi || '');
+        state.editingPekerjaanId = id;
+        updatePekerjaanMode();
+        showToast('Mode edit aktif.', 'primary');
+        return;
+      }
+
+      if (btn.dataset.action === 'delete') {
+        if (!confirm('Hapus data pekerjaan ini?')) return;
+        try {
+          await authorizedFetch(`/api/user/pekerjaan/${id}?id=${getUserId()}`, { method:'DELETE' });
+          showToast('Data pekerjaan berhasil dihapus.', 'success');
+          if (state.editingPekerjaanId === id) resetPekerjaanForm();
+          await refreshProfile();
+          await loadRekapPekerjaan();
+        } catch (err) { showToast(err.message, 'danger'); }
+      }
+    }
+
+    async function submitSosmed(e) {
+      e.preventDefault();
+      const userId = getUserId();
+      if (!userId) return;
+
+      const payload = {
+        nama_perusahaan: state.profile?.nama_perusahaan || 'Belum diisi',
+        posisi: state.profile?.posisi || 'Belum diisi',
+        jenis_instansi: state.profile?.jenis_instansi || 'Swasta',
+        alamat_kerja: state.profile?.alamat_kerja || '',
+        email_publik: document.getElementById('emailPublikSosmed').value.trim(),
+        no_hp: document.getElementById('noHpSosmed').value.trim(),
+        linkedin_url: document.getElementById('linkedinUrl').value.trim(),
+        ig_url: document.getElementById('instagramUrl').value.trim(),
+        fb_url: document.getElementById('facebookUrl').value.trim(),
+        tiktok_url: document.getElementById('tiktokUrl').value.trim(),
+        sosmed_kantor: ''
+      };
+
+      try {
+        if (state.profile?.pekerjaan_id) {
+          await authorizedFetch(`/api/user/pekerjaan/${state.profile.pekerjaan_id}?id=${userId}`, { method:'PUT', body: JSON.stringify(payload) });
+        } else {
+          await authorizedFetch(`/api/user/tambah-pekerjaan?id=${userId}`, { method:'POST', body: JSON.stringify(payload) });
+        }
+        await refreshProfile();
+        showToast('Media sosial berhasil disimpan.', 'success');
+      } catch (err) { showToast(err.message, 'danger'); }
+    }
+
+    async function submitFoto(e) {
+      e.preventDefault();
+      const input = document.getElementById('inputFoto');
+      const userId = getUserId();
+      if (!userId) return;
+      if (!input?.files?.length) { showToast('Pilih foto dulu.', 'warning'); return; }
+
+      const fd = new FormData();
+      fd.append('foto', input.files[0]);
+      try {
+        await authorizedFetch(`/api/user/upload-foto?id=${userId}`, { method:'POST', body:fd });
+        input.value = '';
+        await refreshProfile();
+        hydrateSection('gantifoto');
+        showToast('Foto profil berhasil diperbarui.', 'success');
+      } catch (err) { showToast(err.message, 'danger'); }
+    }
+
+    function bindSection(section) {
+      if (section === 'akademik') {
+        const btn = document.getElementById('btnRefreshAkademik');
+        if (btn) btn.addEventListener('click', async () => { await refreshProfile(); hydrateSection('akademik'); showToast('Profil diperbarui.', 'primary'); });
+      }
+
+      if (section === 'datapekerjaan') {
+        document.getElementById('formPekerjaan')?.addEventListener('submit', submitPekerjaan);
+        document.getElementById('rekapPekerjaanBody')?.addEventListener('click', handleRekapAction);
+        document.getElementById('cancelEditPekerjaan')?.addEventListener('click', () => { resetPekerjaanForm(); hydrateSection('datapekerjaan'); });
+        document.getElementById('jenisInstansi')?.addEventListener('change', (e) => {
+          const wrap = document.getElementById('jenisInstansiLainnyaWrap');
+          if (!wrap) return;
+          wrap.classList.toggle('d-none', e.target.value !== 'Lainnya');
+        });
+      }
+
+      if (section === 'mediasosial') {
+        document.getElementById('formMediaSosial')?.addEventListener('submit', submitSosmed);
+      }
+
+      if (section === 'gantifoto') {
+        document.getElementById('formUpdateFoto')?.addEventListener('submit', submitFoto);
+        const input = document.getElementById('inputFoto');
+        const prev = document.getElementById('previewFotoProfil');
+        if (input && prev) {
+          input.addEventListener('change', () => {
+            if (!input.files?.length) return;
+            prev.src = URL.createObjectURL(input.files[0]);
+          });
+        }
+      }
+    }
+
+    function setupSidebarToggle() {
+      const side = document.getElementById('sidebar');
+      const collapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+      side.classList.toggle('collapsed', collapsed);
+      document.getElementById('toggleSidebarButton').addEventListener('click', () => {
+        side.classList.toggle('collapsed');
+        localStorage.setItem('sidebar-collapsed', side.classList.contains('collapsed') ? 'true' : 'false');
+      });
+    }
+
+    async function init() {
+      const token = getToken();
+      const userId = getUserId();
+      if (!token || !userId || localStorage.getItem('isLoggedIn') !== 'true') { window.location.replace('../login.html'); return; }
+
+      setupSidebarToggle();
+      document.getElementById('logoutButton').addEventListener('click', logout);
+      document.getElementById('refreshProfileButton').addEventListener('click', async () => { await refreshProfile(); hydrateSection(state.activeSection); showToast('Profil di-refresh.', 'primary'); });
+      document.querySelectorAll('.menu button[data-section]').forEach((btn) => btn.addEventListener('click', () => loadSection(btn.dataset.section).catch((e) => showToast(e.message, 'danger'))));
+
+      await refreshProfile();
+      await loadSection('dashboarduser');
+
+      state.timer = setInterval(async () => {
+        await refreshProfile();
+        if (state.activeSection === 'akademik' || state.activeSection === 'dashboarduser') {
+          hydrateSection(state.activeSection);
+        }
+      }, 45000);
+
+      document.addEventListener('visibilitychange', async () => {
+        if (!document.hidden) {
+          await refreshProfile();
+          hydrateSection(state.activeSection);
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
+

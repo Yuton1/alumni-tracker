@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manajemen Sumber Pelacakan - Alumni Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f3f6ff;
+      --line: #d9e2f1;
+      --blue: #2563eb;
+      --cyan: #0284c7;
+      --ink: #0f172a;
+      --green: #10b981;
+      --orange: #f97316;
+      --red: #ef4444;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(37, 99, 235, 0.1), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(2, 132, 199, 0.1), transparent 35%),
+        var(--bg);
+      color: #1f2937;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      background: linear-gradient(120deg, #1e3a8a, #0284c7);
+      color: #fff;
+      border-radius: 18px;
+      box-shadow: 0 14px 34px rgba(30, 58, 138, 0.22);
+      padding: 16px 18px;
+      margin-bottom: 24px;
+    }
+
+    .panel {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .card-source {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+      transition: all 0.2s ease;
+    }
+
+    .card-source:hover {
+      border-color: var(--blue);
+      box-shadow: 0 8px 16px rgba(37, 99, 235, 0.1);
+    }
+
+    .source-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .source-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .source-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1.2rem;
+    }
+
+    .source-icon.linkedin {
+      background: linear-gradient(135deg, #0a66c2, #0d47a1);
+    }
+
+    .source-icon.google {
+      background: linear-gradient(135deg, #ea4335, #fbbc04);
+    }
+
+    .source-icon.instagram {
+      background: linear-gradient(135deg, #e4405f, #feda75);
+    }
+
+    .source-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: #cbd5e1;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .toggle-switch.active {
+      background: var(--green);
+    }
+
+    .toggle-switch:before {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: left 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .toggle-switch.active:before {
+      left: 22px;
+    }
+
+    .source-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .meta-item {
+      background: #f8fbff;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 0.85rem;
+    }
+
+    .meta-label {
+      color: #64748b;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .meta-value {
+      color: var(--ink);
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .meta-value.success {
+      color: var(--green);
+    }
+
+    .meta-value.warning {
+      color: var(--orange);
+    }
+
+    .meta-value.danger {
+      color: var(--red);
+    }
+
+    .confidence-indicator {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin: 0 4px;
+    }
+
+    .confidence-indicator.high {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--green);
+    }
+
+    .confidence-indicator.medium {
+      background: rgba(249, 115, 22, 0.15);
+      color: var(--orange);
+    }
+
+    .confidence-indicator.low {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--red);
+    }
+
+    .scheduler-section {
+      background: #f8fbff;
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+
+    .scheduler-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .scheduler-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .scheduler-label {
+      min-width: 120px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .scheduler-value {
+      flex: 1;
+      font-size: 0.9rem;
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .scheduler-action {
+      display: inline-block;
+      padding: 6px 12px;
+      background: var(--blue);
+      color: white;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 0;
+    }
+
+    .scheduler-action:hover {
+      background: #1d4ed8;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+    }
+
+    .cross-validation {
+      background: #f0fdf4;
+      border-left: 4px solid var(--green);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: #166534;
+      margin-top: 12px;
+    }
+
+    .cross-validation.warning {
+      background: #fffbeb;
+      border-color: var(--orange);
+      color: #92400e;
+    }
+
+    .cross-validation.error {
+      background: #fef2f2;
+      border-color: var(--red);
+      color: #991b1b;
+    }
+
+    .btn-custom {
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border: 0;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .btn-custom.primary {
+      background: linear-gradient(120deg, #1e3a8a, #0284c7);
+      color: #fff;
+    }
+
+    .btn-custom.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(30, 58, 138, 0.3);
+    }
+
+    .btn-custom.secondary {
+      background: #f1f5f9;
+      color: var(--blue);
+      border: 1px solid #e2e8f0;
+    }
+
+    .btn-custom.secondary:hover {
+      background: #e2e8f0;
+      border-color: var(--blue);
+    }
+
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--blue);
+      text-decoration: none;
+      font-weight: 600;
+      margin-bottom: 20px;
+      transition: all 0.2s ease;
+    }
+
+    .back-button:hover {
+      gap: 12px;
+      color: var(--ink);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--blue);
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: #64748b;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <a href="index.html" class="back-button">
+      <i class="fas fa-arrow-left"></i> Kembali ke Admin
+    </a>
+
+    <section class="topbar">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+          <h1 class="h4 mb-1 fw-semibold">Manajemen Sumber Pelacakan</h1>
+          <p class="mb-0 small opacity-75">Konfigurasi pencarian otomatis, scheduler, dan validasi silang antar sumber.</p>
+        </div>
+        <button class="btn btn-light btn-sm" onclick="runFullSchedule()">
+          <i class="fas fa-play me-1"></i> Jalankan Semua Scheduler
+        </button>
+      </div>
+    </section>
+
+    <!-- Statistics -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">12</div>
+        <div class="stat-label">Total Alumni</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">8</div>
+        <div class="stat-label">Teridentifikasi</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">3</div>
+        <div class="stat-label">Perlu Validasi</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">85%</div>
+        <div class="stat-label">Avg. Confidence</div>
+      </div>
+    </div>
+
+    <!-- LinkedIn Source -->
+    <div class="card-source">
+      <div class="source-header">
+        <div class="source-name">
+          <div class="source-icon linkedin">
+            <i class="fab fa-linkedin"></i>
+          </div>
+          LinkedIn Search
+        </div>
+        <div class="source-toggle">
+          <span>Aktif</span>
+          <div class="toggle-switch active" onclick="toggleSource(this)"></div>
+        </div>
+      </div>
+
+      <div class="source-meta">
+        <div class="meta-item">
+          <div class="meta-label">Status Terakhir</div>
+          <div class="meta-value success"><i class="fas fa-check-circle me-1"></i> Sukses</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Ditemukan Alumni</div>
+          <div class="meta-value">8/12</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Rata-rata Confidence</div>
+          <div class="meta-value">92%</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Last Run</div>
+          <div class="meta-value" style="font-size: 0.9rem;">2 jam lalu</div>
+        </div>
+      </div>
+
+      <div class="scheduler-section">
+        <h6 style="margin-bottom: 12px; font-weight: 600; color: #64748b;">⏱️ Jadwal Otomatis</h6>
+        <div class="scheduler-row">
+          <div class="scheduler-label">Frekuensi</div>
+          <div class="scheduler-value">Setiap hari, jam 10:00 WITA</div>
+          <button class="scheduler-action" onclick="editSchedule('linkedin')">Edit</button>
+        </div>
+        <div class="scheduler-row">
+          <div class="scheduler-label">Status</div>
+          <div class="scheduler-value" style="color: var(--green);"><i class="fas fa-check me-1"></i>Terjadwal</div>
+        </div>
+        <div class="scheduler-row">
+          <div class="scheduler-label">Next Run</div>
+          <div class="scheduler-value">Besok, 10:00 WITA (~8 jam)</div>
+        </div>
+      </div>
+
+      <div class="cross-validation">
+        <i class="fas fa-check-circle me-2"></i>
+        <strong>Validasi Silang:</strong> Semua hasil LinkedIn telah diverifikasi dengan Google Search. 8/8 sesuai.
+      </div>
+    </div>
+
+    <!-- Google Search Source -->
+    <div class="card-source">
+      <div class="source-header">
+        <div class="source-name">
+          <div class="source-icon google">
+            <i class="fas fa-magnifying-glass"></i>
+          </div>
+          Google Custom Search
+        </div>
+        <div class="source-toggle">
+          <span>Aktif</span>
+          <div class="toggle-switch active" onclick="toggleSource(this)"></div>
+        </div>
+      </div>
+
+      <div class="source-meta">
+        <div class="meta-item">
+          <div class="meta-label">Status Terakhir</div>
+          <div class="meta-value warning"><i class="fas fa-exclamation-triangle me-1"></i> Partial</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Ditemukan Alumni</div>
+          <div class="meta-value">5/12</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Rata-rata Confidence</div>
+          <div class="meta-value">68%</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Last Run</div>
+          <div class="meta-value" style="font-size: 0.9rem;">4 jam lalu</div>
+        </div>
+      </div>
+
+      <div class="scheduler-section">
+        <h6 style="margin-bottom: 12px; font-weight: 600; color: #64748b;">⏱️ Jadwal Otomatis</h6>
+        <div class="scheduler-row">
+          <div class="scheduler-label">Frekuensi</div>
+          <div class="scheduler-value">Setiap 6 jam</div>
+          <button class="scheduler-action" onclick="editSchedule('google')">Edit</button>
+        </div>
+        <div class="scheduler-row">
+          <div class="scheduler-label">Status</div>
+          <div class="scheduler-value" style="color: var(--green);"><i class="fas fa-check me-1"></i>Terjadwal</div>
+        </div>
+        <div class="scheduler-row">
+          <div class="scheduler-label">Next Run</div>
+          <div class="scheduler-value">Hari ini, 18:00 WITA (~6 jam)</div>
+        </div>
+      </div>
+
+      <div class="cross-validation warning">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <strong>Validasi Silang:</strong> 3 dari 5 hasil berbeda dengan LinkedIn. 2 kandidat memerlukan review manual.
+        <a href="#" style="color: var(--orange); font-weight: 600; display: block; margin-top: 8px;">
+          <i class="fas fa-arrow-right me-1"></i> Lihat Perbedaan
+        </a>
+      </div>
+    </div>
+
+    <!-- Instagram Source -->
+    <div class="card-source">
+      <div class="source-header">
+        <div class="source-name">
+          <div class="source-icon instagram">
+            <i class="fab fa-instagram"></i>
+          </div>
+          Instagram Business Search
+        </div>
+        <div class="source-toggle">
+          <span>Nonaktif</span>
+          <div class="toggle-switch" onclick="toggleSource(this)"></div>
+        </div>
+      </div>
+
+      <div class="source-meta">
+        <div class="meta-item">
+          <div class="meta-label">Status Terakhir</div>
+          <div class="meta-value danger"><i class="fas fa-times-circle me-1"></i> Nonaktif</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Ditemukan Alumni</div>
+          <div class="meta-value">-</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Rata-rata Confidence</div>
+          <div class="meta-value">-</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Last Run</div>
+          <div class="meta-value" style="font-size: 0.9rem;">Tidak pernah</div>
+        </div>
+      </div>
+
+      <div class="scheduler-section">
+        <h6 style="margin-bottom: 12px; font-weight: 600; color: #64748b;">⏱️ Jadwal Otomatis</h6>
+        <div class="scheduler-row">
+          <div class="scheduler-label">Frekuensi</div>
+          <div class="scheduler-value">Belum dikonfigurasi</div>
+          <button class="scheduler-action" onclick="editSchedule('instagram')">Setup</button>
+        </div>
+        <div class="scheduler-row">
+          <div class="scheduler-label">Status</div>
+          <div class="scheduler-value" style="color: var(--red);"><i class="fas fa-pause me-1"></i>Ditunda</div>
+        </div>
+        <div class="scheduler-row">
+          <div class="scheduler-label">Catatan</div>
+          <div class="scheduler-value" style="font-size: 0.85rem; color: #64748b;">Memerlukan konfigurasi API Key</div>
+        </div>
+      </div>
+
+      <div class="cross-validation error">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Perhatian:</strong> Sumber ini tidak aktif. Aktifkan untuk meningkatkan coverage deteksi alumni.
+      </div>
+    </div>
+
+    <!-- Disambiguasi Configuration -->
+    <div class="panel">
+      <h5 style="margin-bottom: 20px; font-weight: 700;">
+        <i class="fas fa-balance-scale me-2" style="color: var(--blue);"></i>
+        Konfigurasi Scoring Disambiguasi
+      </h5>
+
+      <p style="color: #64748b; margin-bottom: 20px; font-size: 0.95rem;">
+        Tentukan bobot untuk setiap kriteria matching yang akan digunakan dalam perhitungan confidence score.
+      </p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+        <div>
+          <label style="font-size: 0.85rem; font-weight: 600; color: #64748b; margin-bottom: 8px; display: block;">
+            Kecocokan Nama
+          </label>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <input type="range" min="0" max="100" value="40" style="flex: 1;">
+            <span style="font-weight: 700; color: var(--blue); min-width: 40px;">40%</span>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size: 0.85rem; font-weight: 600; color: #64748b; margin-bottom: 8px; display: block;">
+            Kecocokan Program Studi
+          </label>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <input type="range" min="0" max="100" value="25" style="flex: 1;">
+            <span style="font-weight: 700; color: var(--blue); min-width: 40px;">25%</span>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size: 0.85rem; font-weight: 600; color: #64748b; margin-bottom: 8px; display: block;">
+            Kecocokan Tahun Lulus
+          </label>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <input type="range" min="0" max="100" value="20" style="flex: 1;">
+            <span style="font-weight: 700; color: var(--blue); min-width: 40px;">20%</span>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size: 0.85rem; font-weight: 600; color: #64748b; margin-bottom: 8px; display: block;">
+            Kecocokan Lokasi Geografis
+          </label>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <input type="range" min="0" max="100" value="15" style="flex: 1;">
+            <span style="font-weight: 700; color: var(--blue); min-width: 40px;">15%</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line);">
+        <button class="btn-custom primary" style="margin-right: 10px;">
+          <i class="fas fa-save me-1"></i> Simpan Konfigurasi
+        </button>
+        <button class="btn-custom secondary">
+          <i class="fas fa-redo me-1"></i> Reset ke Default
+        </button>
+      </div>
+    </div>
+
+    <!-- Confidence Thresholds -->
+    <div class="panel">
+      <h5 style="margin-bottom: 20px; font-weight: 700;">
+        <i class="fas fa-sliders-h me-2" style="color: var(--blue);"></i>
+        Threshold Confidence untuk Validasi Otomatis
+      </h5>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+        <div style="background: #f8fbff; border-radius: 12px; padding: 16px;">
+          <div style="font-size: 0.85rem; font-weight: 600; color: #64748b; margin-bottom: 8px;">
+            <i class="fas fa-check-circle me-1" style="color: var(--green);"></i> Otomatis Terverifikasi
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <input type="number" min="0" max="100" value="85" style="width: 60px; padding: 8px; border: 1px solid var(--line); border-radius: 6px; font-weight: 700;">
+            <span style="color: #64748b;">%</span>
+          </div>
+        </div>
+
+        <div style="background: #fffbeb; border-radius: 12px; padding: 16px;">
+          <div style="font-size: 0.85rem; font-weight: 600; color: #92400e; margin-bottom: 8px;">
+            <i class="fas fa-hourglass-end me-1" style="color: var(--orange);"></i> Perlu Review Manual
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <input type="number" min="0" max="100" value="50" style="width: 60px; padding: 8px; border: 1px solid #fbbf24; border-radius: 6px; font-weight: 700;">
+            <span style="color: #92400e;">%</span>
+          </div>
+        </div>
+
+        <div style="background: #fef2f2; border-radius: 12px; padding: 16px;">
+          <div style="font-size: 0.85rem; font-weight: 600; color: #991b1b; margin-bottom: 8px;">
+            <i class="fas fa-times-circle me-1" style="color: var(--red);"></i> Ditolak
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <input type="number" min="0" max="100" value="30" style="width: 60px; padding: 8px; border: 1px solid #fca5a5; border-radius: 6px; font-weight: 700;">
+            <span style="color: #991b1b;">%</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line);">
+        <button class="btn-custom primary" style="margin-right: 10px;">
+          <i class="fas fa-save me-1"></i> Simpan Threshold
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function toggleSource(element) {
+      element.classList.toggle('active');
+      const isActive = element.classList.contains('active');
+      const status = isActive ? 'diaktifkan' : 'dinonaktifkan';
+      console.log('Source toggled:', status);
+    }
+
+    function editSchedule(source) {
+      alert(`Buka editor jadwal untuk ${source}`);
+      // Implement modal for schedule editing
+    }
+
+    function runFullSchedule() {
+      alert('Menjalankan semua scheduler...');
+      // Implement API call to run all schedules
+    }
+  </script>
+</body>
+</html>

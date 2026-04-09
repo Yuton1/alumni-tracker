@@ -1,0 +1,134 @@
+<div class="mb-4">
+    <div class="p-4 rounded-4 border-0 shadow-sm position-relative overflow-hidden" 
+         style="background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%);">
+        <div class="position-absolute top-0 end-0 p-5 opacity-10">
+            <i class="fas fa-graduation-cap fa-6x text-white"></i>
+        </div>
+        
+        <div class="position-relative d-flex align-items-center gap-3">
+            <div>
+                <h4 class="mb-1 text-white fw-bold">Selamat datang, <span id="dashWelcomeName" class="text-warning">Alumni</span>!</h4>
+                <p class="text-white text-opacity-75 mb-0 small">Sistem Pelacakan Alumni • Berikut ringkasan data profil Anda.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card h-100 border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-primary bg-opacity-10 p-2 rounded-3 me-3">
+                        <i class="fas fa-id-card text-primary"></i>
+                    </div>
+                    <h6 class="fw-bold mb-0 text-dark">Profil Utama</h6>
+                </div>
+                
+                <div class="vstack gap-3">
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                        <span class="text-muted small"><i class="fas fa-user me-2 opacity-50"></i>Nama</span>
+                        <span class="fw-semibold text-dark small" id="dashNama">-</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                        <span class="text-muted small"><i class="fas fa-at me-2 opacity-50"></i>Username</span>
+                        <span class="fw-semibold text-dark small" id="dashUsername">-</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                        <span class="text-muted small"><i class="fas fa-book-open me-2 opacity-50"></i>Program Studi</span>
+                        <span class="fw-semibold text-dark small" id="dashProdi">-</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                        <span class="text-muted small"><i class="fas fa-university me-2 opacity-50"></i>Fakultas</span>
+                        <span class="fw-semibold text-dark small" id="dashFakultas">-</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                        <span class="text-muted small"><i class="fas fa-map-marker-alt me-2 opacity-50"></i>Domisili</span>
+                        <span class="fw-semibold text-dark small" id="dashKota">-</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small"><i class="fas fa-calendar-check me-2 opacity-50"></i>Tanggal Lulus</span>
+                        <span class="fw-semibold text-dark small" id="dashTanggalLulus">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card h-100 border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-success bg-opacity-10 p-2 rounded-3 me-3">
+                        <i class="fas fa-share-nodes text-success"></i>
+                    </div>
+                    <h6 class="fw-bold mb-0 text-dark">Kontak & Sosial Media</h6>
+                </div>
+
+                <div class="vstack gap-3 mb-4">
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                        <span class="text-muted small"><i class="fas fa-envelope me-2 opacity-50"></i>Email</span>
+                        <span class="fw-semibold text-dark small" id="dashEmail">-</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                        <span class="text-muted small"><i class="fas fa-phone me-2 opacity-50"></i>No HP</span>
+                        <span class="fw-semibold text-dark small" id="dashNoHp">-</span>
+                    </div>
+                </div>
+
+                <label class="d-block small text-muted fw-bold text-uppercase mb-3" style="letter-spacing: 1px;">Tautan Sosial</label>
+                <div class="d-flex flex-wrap gap-2">
+                    <a id="dashLinkedinItem" class="btn btn-light btn-sm rounded-3 border d-none" target="_blank">
+                        <i class="fab fa-linkedin text-primary me-1"></i>LinkedIn
+                    </a>
+                    <a id="dashInstagramItem" class="btn btn-light btn-sm rounded-3 border d-none" target="_blank">
+                        <i class="fab fa-instagram text-danger me-1"></i>Instagram
+                    </a>
+                    <a id="dashFacebookItem" class="btn btn-light btn-sm rounded-3 border d-none" target="_blank">
+                        <i class="fab fa-facebook text-primary me-1"></i>Facebook
+                    </a>
+                    <a id="dashTiktokItem" class="btn btn-light btn-sm rounded-3 border d-none" target="_blank">
+                        <i class="fab fa-tiktok text-dark me-1"></i>TikTok
+                    </a>
+                    <div id="dashNoSocial" class="p-3 bg-light rounded-3 text-center w-100 d-none">
+                        <span class="text-muted small italic">Belum ada media sosial</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4" style="border-left: 5px solid #0dcaf0 !important;">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-info bg-opacity-10 p-2 rounded-3 me-3">
+                        <i class="fas fa-briefcase text-info"></i>
+                    </div>
+                    <h6 class="fw-bold mb-0 text-dark">Pekerjaan Terkini</h6>
+                </div>
+                
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-4 border-0">
+                            <small class="text-muted d-block mb-1">Perusahaan</small>
+                            <span class="fw-bold text-dark" id="dashPerusahaan">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-4 border-0">
+                            <small class="text-muted d-block mb-1">Jabatan / Posisi</small>
+                            <span class="fw-bold text-dark" id="dashPosisi">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-4 border-0">
+                            <small class="text-muted d-block mb-1">Kategori Instansi</small>
+                            <span class="fw-bold text-dark" id="dashJenisInstansi">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

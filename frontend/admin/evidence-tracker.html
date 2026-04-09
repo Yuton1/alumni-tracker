@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jejak Bukti - Alumni Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f3f6ff;
+      --line: #d9e2f1;
+      --blue: #2563eb;
+      --cyan: #0284c7;
+      --ink: #0f172a;
+      --green: #10b981;
+      --orange: #f97316;
+      --red: #ef4444;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(37, 99, 235, 0.1), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(2, 132, 199, 0.1), transparent 35%),
+        var(--bg);
+      color: #1f2937;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      background: linear-gradient(120deg, #1e3a8a, #0284c7);
+      color: #fff;
+      border-radius: 18px;
+      box-shadow: 0 14px 34px rgba(30, 58, 138, 0.22);
+      padding: 16px 18px;
+      margin-bottom: 24px;
+    }
+
+    .profile-section {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07);
+      padding: 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 36px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .profile-info {
+      flex: 1;
+    }
+
+    .profile-name {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+
+    .profile-meta {
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+
+    .filter-bar {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+    }
+
+    .filter-select {
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-select:hover {
+      border-color: var(--blue);
+      background: #f8fbff;
+    }
+
+    .evidence-item {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+      transition: all 0.2s ease;
+    }
+
+    .evidence-item:hover {
+      border-color: var(--blue);
+      box-shadow: 0 8px 16px rgba(37, 99, 235, 0.1);
+    }
+
+    .evidence-item.high-confidence {
+      border-left: 4px solid var(--green);
+    }
+
+    .evidence-item.medium-confidence {
+      border-left: 4px solid var(--orange);
+    }
+
+    .evidence-item.low-confidence {
+      border-left: 4px solid var(--red);
+    }
+
+    .evidence-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .evidence-source {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .source-icon {
+      width: 32px;
+      height: 32px;
+      background: #f0f4f9;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--blue);
+      font-size: 0.9rem;
+    }
+
+    .source-info h5 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+
+    .source-info p {
+      font-size: 0.85rem;
+      color: #64748b;
+      margin-bottom: 0;
+    }
+
+    .evidence-timestamp {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      text-align: right;
+    }
+
+    .timestamp-date {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .timestamp-time {
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+
+    .timestamp-relative {
+      font-size: 0.75rem;
+      color: #cbd5e1;
+      margin-top: 4px;
+    }
+
+    .evidence-content {
+      margin-bottom: 16px;
+    }
+
+    .evidence-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+
+    .evidence-snippet {
+      background: #f8fbff;
+      padding: 12px;
+      border-radius: 8px;
+      border-left: 3px solid var(--blue);
+      font-size: 0.9rem;
+      color: #475569;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    .evidence-snippet.highlight {
+      background: #fef3c7;
+      border-left-color: var(--orange);
+    }
+
+    .evidence-link {
+      display: inline-block;
+      font-size: 0.85rem;
+      color: var(--blue);
+      text-decoration: none;
+      padding: 6px 12px;
+      background: rgba(37, 99, 235, 0.1);
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .evidence-link:hover {
+      background: rgba(37, 99, 235, 0.2);
+      text-decoration: underline;
+    }
+
+    .evidence-footer {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 16px;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .confidence-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .confidence-bar {
+      flex: 1;
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    .confidence-fill.high {
+      background: linear-gradient(90deg, #10b981, #059669);
+    }
+
+    .confidence-fill.medium {
+      background: linear-gradient(90deg, #f97316, #ea580c);
+    }
+
+    .confidence-fill.low {
+      background: linear-gradient(90deg, #ef4444, #dc2626);
+    }
+
+    .confidence-percentage {
+      font-size: 0.85rem;
+      font-weight: 700;
+      min-width: 45px;
+      text-align: right;
+    }
+
+    .confidence-percentage.high {
+      color: var(--green);
+    }
+
+    .confidence-percentage.medium {
+      color: var(--orange);
+    }
+
+    .confidence-percentage.low {
+      color: var(--red);
+    }
+
+    .evidence-metadata {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .metadata-tag {
+      background: #f1f5f9;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      color: #64748b;
+      font-weight: 600;
+      border: 1px solid #e2e8f0;
+    }
+
+    .metadata-tag.verified {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--green);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .metadata-tag.manual {
+      background: rgba(249, 115, 22, 0.1);
+      color: var(--orange);
+      border-color: rgba(249, 115, 22, 0.3);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-action {
+      padding: 6px 12px;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      color: var(--blue);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn-action:hover {
+      background: var(--blue);
+      color: white;
+      border-color: var(--blue);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #cbd5e1;
+    }
+
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--blue);
+      text-decoration: none;
+      font-weight: 600;
+      margin-bottom: 20px;
+      transition: all 0.2s ease;
+    }
+
+    .back-button:hover {
+      gap: 12px;
+      color: var(--ink);
+    }
+
+    .summary-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--blue);
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      .profile-section {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .evidence-footer {
+        grid-template-columns: 1fr;
+      }
+
+      .evidence-timestamp {
+        align-items: flex-start;
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <a href="detailprofile.html" class="back-button">
+      <i class="fas fa-arrow-left"></i> Kembali ke Profil Alumni
+    </a>
+
+    <section class="topbar">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+          <h1 class="h4 mb-1 fw-semibold">Jejak Bukti Verifikasi Alumni</h1>
+          <p class="mb-0 small opacity-75">Riwayat lengkap pencarian, snippet, link sumber, waktu, dan confidence score.</p>
+        </div>
+        <button class="btn btn-light btn-sm" onclick="exportEvidence()">
+          <i class="fas fa-download me-1"></i> Ekspor Data
+        </button>
+      </div>
+    </section>
+
+    <!-- Profile -->
+    <div class="profile-section">
+      <div class="profile-avatar">AH</div>
+      <div class="profile-info">
+        <div class="profile-name">Ahmad Hidayat</div>
+        <div class="profile-meta">
+          <span>ID #12345</span> • 
+          <span>Teknik Informatika (2020)</span> • 
+          <span>Jakarta</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Statistics -->
+    <div class="summary-stats">
+      <div class="stat-card">
+        <div class="stat-value">12</div>
+        <div class="stat-label">Total Bukti</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">8</div>
+        <div class="stat-label">Terverifikasi</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">3</div>
+        <div class="stat-label">Review Manual</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">85%</div>
+        <div class="stat-label">Avg Confidence</div>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="filter-item">
+        <label style="font-weight: 600;">Filter:</label>
+        <select class="filter-select" onchange="filterEvidence(this.value)">
+          <option value="all">Semua Bukti</option>
+          <option value="high">Confidence Tinggi (85%+)</option>
+          <option value="medium">Confidence Sedang (50-85%)</option>
+          <option value="low">Confidence Rendah (<50%)</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label style="font-weight: 600;">Sumber:</label>
+        <select class="filter-select" onchange="filterSource(this.value)">
+          <option value="all">Semua Sumber</option>
+          <option value="linkedin">LinkedIn</option>
+          <option value="google">Google Search</option>
+          <option value="instagram">Instagram</option>
+          <option value="manual">Manual Entry</option>
+        </select>
+      </div>
+      <div class="filter-item" style="margin-left: auto;">
+        <input type="text" placeholder="Cari dalam bukti..." style="padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 0.9rem;">
+      </div>
+    </div>
+
+    <!-- Evidence List -->
+    <div id="evidenceContainer">
+      <!-- LinkedIn Evidence -->
+      <div class="evidence-item high-confidence">
+        <div class="evidence-header">
+          <div class="evidence-source">
+            <div class="source-icon">
+              <i class="fab fa-linkedin"></i>
+            </div>
+            <div class="source-info">
+              <h5>LinkedIn Profile</h5>
+              <p>linkedin.com/in/ahmadh</p>
+            </div>
+          </div>
+          <div class="evidence-timestamp">
+            <div class="timestamp-date">15 Jan 2024</div>
+            <div class="timestamp-time">10:30 AM</div>
+            <div class="timestamp-relative">2 jam lalu</div>
+          </div>
+        </div>
+
+        <div class="evidence-content">
+          <div class="evidence-title">Senior Software Engineer</div>
+          <div class="evidence-snippet">
+            <strong>Ahmad Hidayat</strong> | Senior Software Engineer at PT. Digital Indonesia | Jakarta, Indonesia | Graduated from Universitas XYZ (2020) with degree in Information Technology
+          </div>
+          <a href="https://linkedin.com/in/ahmadh" target="_blank" class="evidence-link">
+            <i class="fas fa-external-link-alt me-1"></i> Buka Profil LinkedIn
+          </a>
+        </div>
+
+        <div class="evidence-footer">
+          <div class="evidence-metadata">
+            <span class="metadata-tag verified"><i class="fas fa-check me-1"></i>Terverifikasi</span>
+            <span class="metadata-tag">Otomatis</span>
+          </div>
+          <div class="confidence-indicator">
+            <span>Confidence</span>
+            <div class="confidence-bar">
+              <div class="confidence-fill high" style="width: 95%;"></div>
+            </div>
+            <span class="confidence-percentage high">95%</span>
+          </div>
+          <div class="action-buttons">
+            <button class="btn-action" onclick="flagEvidence(this)">
+              <i class="fas fa-flag me-1"></i> Flag
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Google Search Evidence -->
+      <div class="evidence-item medium-confidence">
+        <div class="evidence-header">
+          <div class="evidence-source">
+            <div class="source-icon">
+              <i class="fas fa-magnifying-glass"></i>
+            </div>
+            <div class="source-info">
+              <h5>Google Search Result</h5>
+              <p>example.com/news</p>
+            </div>
+          </div>
+          <div class="evidence-timestamp">
+            <div class="timestamp-date">14 Jan 2024</div>
+            <div class="timestamp-time">3:15 PM</div>
+            <div class="timestamp-relative">Kemarin</div>
+          </div>
+        </div>
+
+        <div class="evidence-content">
+          <div class="evidence-title">Artikel Berita Teknologi</div>
+          <div class="evidence-snippet highlight">
+            "Ahmad Hidayat, seorang engineer berbakat dari PT. Digital Indonesia, baru-baru ini memimpin proyek transformasi digital yang mengubah industri..."
+          </div>
+          <a href="https://example.com/news" target="_blank" class="evidence-link">
+            <i class="fas fa-external-link-alt me-1"></i> Buka Artikel
+          </a>
+        </div>
+
+        <div class="evidence-footer">
+          <div class="evidence-metadata">
+            <span class="metadata-tag manual"><i class="fas fa-eye me-1"></i>Review Manual</span>
+            <span class="metadata-tag">Google Search</span>
+          </div>
+          <div class="confidence-indicator">
+            <span>Confidence</span>
+            <div class="confidence-bar">
+              <div class="confidence-fill medium" style="width: 72%;"></div>
+            </div>
+            <span class="confidence-percentage medium">72%</span>
+          </div>
+          <div class="action-buttons">
+            <button class="btn-action" onclick="approveEvidence(this)">
+              <i class="fas fa-check me-1"></i> Setujui
+            </button>
+            <button class="btn-action" onclick="flagEvidence(this)">
+              <i class="fas fa-flag me-1"></i> Flag
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Manual Entry -->
+      <div class="evidence-item high-confidence">
+        <div class="evidence-header">
+          <div class="evidence-source">
+            <div class="source-icon">
+              <i class="fas fa-user-check"></i>
+            </div>
+            <div class="source-info">
+              <h5>Manual Verification</h5>
+              <p>Verified by Admin</p>
+            </div>
+          </div>
+          <div class="evidence-timestamp">
+            <div class="timestamp-date">13 Jan 2024</div>
+            <div class="timestamp-time">8:45 AM</div>
+            <div class="timestamp-relative">2 hari lalu</div>
+          </div>
+        </div>
+
+        <div class="evidence-content">
+          <div class="evidence-title">Kontak Langsung Alumni</div>
+          <div class="evidence-snippet">
+            Verifikasi melalui kontak WhatsApp dengan alumni. Dikonfirmasi bahwa alumni saat ini bekerja sebagai Senior Software Engineer di PT. Digital Indonesia sejak 2021.
+          </div>
+        </div>
+
+        <div class="evidence-footer">
+          <div class="evidence-metadata">
+            <span class="metadata-tag verified"><i class="fas fa-check me-1"></i>Terverifikasi</span>
+            <span class="metadata-tag">Manual Entry</span>
+          </div>
+          <div class="confidence-indicator">
+            <span>Confidence</span>
+            <div class="confidence-bar">
+              <div class="confidence-fill high" style="width: 100%;"></div>
+            </div>
+            <span class="confidence-percentage high">100%</span>
+          </div>
+          <div class="action-buttons">
+            <button class="btn-action" onclick="editEvidence(this)">
+              <i class="fas fa-edit me-1"></i> Edit
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instagram Evidence -->
+      <div class="evidence-item low-confidence">
+        <div class="evidence-header">
+          <div class="evidence-source">
+            <div class="source-icon">
+              <i class="fab fa-instagram"></i>
+            </div>
+            <div class="source-info">
+              <h5>Instagram Business Account</h5>
+              <p>instagram.com/ahmadh.tech</p>
+            </div>
+          </div>
+          <div class="evidence-timestamp">
+            <div class="timestamp-date">10 Jan 2024</div>
+            <div class="timestamp-time">5:20 PM</div>
+            <div class="timestamp-relative">5 hari lalu</div>
+          </div>
+        </div>
+
+        <div class="evidence-content">
+          <div class="evidence-title">Instagram Bio</div>
+          <div class="evidence-snippet">
+            "Ahmad H. | Tech Enthusiast | Senior Engineer 🚀 | Berbagi tentang programming & tech trends"
+          </div>
+          <a href="https://instagram.com/ahmadh.tech" target="_blank" class="evidence-link">
+            <i class="fas fa-external-link-alt me-1"></i> Buka Profil Instagram
+          </a>
+        </div>
+
+        <div class="evidence-footer">
+          <div class="evidence-metadata">
+            <span class="metadata-tag"><i class="fas fa-question me-1"></i>Belum Dikonfirmasi</span>
+            <span class="metadata-tag">Instagram</span>
+          </div>
+          <div class="confidence-indicator">
+            <span>Confidence</span>
+            <div class="confidence-bar">
+              <div class="confidence-fill low" style="width: 38%;"></div>
+            </div>
+            <span class="confidence-percentage low">38%</span>
+          </div>
+          <div class="action-buttons">
+            <button class="btn-action" onclick="approveEvidence(this)">
+              <i class="fas fa-check me-1"></i> Setujui
+            </button>
+            <button class="btn-action" onclick="rejectEvidence(this)">
+              <i class="fas fa-times me-1"></i> Tolak
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function filterEvidence(confidence) {
+      console.log('Filter by confidence:', confidence);
+      // Implement filtering logic
+    }
+
+    function filterSource(source) {
+      console.log('Filter by source:', source);
+      // Implement filtering logic
+    }
+
+    function approveEvidence(btn) {
+      const item = btn.closest('.evidence-item');
+      item.classList.add('high-confidence');
+      item.classList.remove('medium-confidence', 'low-confidence');
+      alert('Bukti disetujui!');
+    }
+
+    function rejectEvidence(btn) {
+      const item = btn.closest('.evidence-item');
+      alert('Bukti ditolak!');
+      // Implement rejection logic
+    }
+
+    function flagEvidence(btn) {
+      alert('Bukti ditandai untuk review!');
+      // Implement flag logic
+    }
+
+    function editEvidence(btn) {
+      alert('Buka editor untuk bukti ini!');
+      // Implement edit modal
+    }
+
+    function exportEvidence() {
+      alert('Mengekspor semua bukti ke format PDF/Excel...');
+      // Implement export logic
+    }
+  </script>
+</body>
+</html>
