@@ -6,6 +6,14 @@ Kelas : Rekayasa Kebutuhan A
 
 Sistem pelacakan alumni yang dirancang untuk mengelola profil, riwayat pekerjaan, dan status verifikasi data alumni.
 
+Masuk akun User 
+Username : Catur Rahmani Oktavia
+Password : 123
+
+Masuk akun Admin
+Username : admin
+Password : admin123
+
 🔗 Link Akses
 - Source Code (GitHub): https://github.com/Yuton1/alumni-tracker.git
 - Link Publish : alumni-tracker-production-3af4.up.railway.app
@@ -41,4 +49,16 @@ ______________________________________________________________________
 |                  | pekerjaan dari databas    | .01 detik)           |
 |                  |                           |                      |
 |---------------------------------------------------------------------|
+
+Fitur 
+✅ Halaman detail profil yang komprehensif
+✅ Proses pencarian otomatis ke sumber publik dengan scheduler
+✅ Scoring disambiguasi dengan weighting sistem
+✅ Cross-validation antar sumber
+✅ Jejak bukti lengkap per kandidat
+✅ Visual confidence indicators
+✅ Timeline verifikasi
+✅ Social media integration
+✅ Export functionality
+✅ Advanced filtering & search
 
