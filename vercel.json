@@ -6,13 +6,14 @@
       "use": "@vercel/node"
     }
   ],
-  "functions": {
-    "backend/server.js": {
-      "includeFiles": "frontend/**"
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "backend/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "backend/server.js"
     }
-  },
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "backend/server.js" },
-    { "source": "/((?!api/).*)", "destination": "backend/server.js" }
   ]
 }
