@@ -578,45 +578,49 @@ app.delete('/api/user/pekerjaan/:id', (req, res) => {
   });
 });
 
-// ===== STATIC FILES & ROUTES =====
+const frontendPath = path.resolve(process.cwd(), 'frontend');
 
-// Serve static files
-app.use(express.static(path.join(__dirname, '../frontend')));
+// 2. Sajikan file statis (CSS, JS, Gambar)
+app.use(express.static(frontendPath));
 
-// Specific routes untuk halaman frontend
+// 3. Rute manual untuk halaman-halaman utama
 app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/admin/dashboard.html'));
+  res.sendFile(path.join(frontendPath, 'admin/dashboard.html'));
 });
 
 app.get('/admin/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/admin/dashboard.html'));
+  res.sendFile(path.join(frontendPath, 'admin/dashboard.html'));
 });
 
 app.get('/register', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/user/register.html'));
+  res.sendFile(path.join(frontendPath, 'user/register.html'));
 });
 
 app.get('/user', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/user/user.html'));
+  res.sendFile(path.join(frontendPath, 'user/user.html'));
 });
 
 app.get('/user/profile', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/user/Profile/akademik.html'));
+  // Gunakan 'Profile' dengan P besar sesuai struktur foldermu
+  res.sendFile(path.join(frontendPath, 'user/Profile/akademik.html'));
 });
 
-// Default route
-// Gunakan syntax (.*) untuk menangkap semua rute, ini lebih aman di versi Express terbaru
+// 4. Rute Sapu Jagat (CATCH-ALL)
+// Di Express 5, dilarang pakai regex /:path((.*)) karena bikin error 500 di Vercel.
+// Cukup gunakan '*' saja untuk menangkap sisa rute.
 app.get('*', (req, res) => {
+  // Abaikan jika ada request API yang salah/nyasar
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ error: 'API route not found' });
   }
 
-  const loginPath = path.join(__dirname, '../frontend/user/login.html');
+  const loginPath = path.join(frontendPath, 'user/login.html');
   
   res.sendFile(loginPath, (err) => {
     if (err) {
       console.error("Gagal mengirim file:", err.message);
-      res.status(404).send("File HTML tidak ditemukan di server Vercel.");
+      // Pesan error ini membantu kita debug lokasi file di log Vercel jika masih gagal
+      res.status(404).send(`File HTML tidak ditemukan. Sistem mencari di: ${loginPath}`);
     }
   });
 });
