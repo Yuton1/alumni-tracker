@@ -581,7 +581,7 @@ app.delete('/api/user/pekerjaan/:id', (req, res) => {
 // ===== STATIC FILES & ROUTES =====
 
 // Serve static files
-app.use(express.static(path.join(process.cwd(), 'frontend')));
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Specific routes untuk halaman frontend
 app.get('/admin', (req, res) => {
@@ -606,14 +606,12 @@ app.get('/user/profile', (req, res) => {
 
 // Default route
 // Gunakan syntax (.*) untuk menangkap semua rute, ini lebih aman di versi Express terbaru
-app.get('/:path((.*))', (req, res) => {
-  // Abaikan request ke API yang salah
+app.get('*', (req, res) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ error: 'API route not found' });
   }
 
-  // Path absolut menggunakan process.cwd()
-  const loginPath = path.join(process.cwd(), 'frontend', 'user', 'login.html');
+  const loginPath = path.join(__dirname, '../frontend/user/login.html');
   
   res.sendFile(loginPath, (err) => {
     if (err) {
