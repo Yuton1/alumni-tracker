@@ -943,6 +943,17 @@ app.get('/user/profile', (req, res) => {
   res.sendFile(path.join(frontendPath, 'user/Profile/akademik.html'));
 });
 
+app.get('/api/healthcheck', async (req, res) => {
+  try {
+    // Sesuaikan 'db' dengan nama variabel koneksi database kamu
+    // Contoh untuk MySQL/TiDB:
+    await db.query('SELECT 1'); 
+    res.json({ status: 'Connected', message: 'Database aman, Malik!' });
+  } catch (err) {
+    res.status(500).json({ status: 'Error', message: err.message });
+  }
+});
+
 // ===== START SERVER =====
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server running on port ${PORT}`);
