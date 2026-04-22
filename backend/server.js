@@ -582,8 +582,8 @@ app.post('/api/register', (req, res) => {
 
 // 1. Sajikan folder frontend
 app.use(express.static(path.join(__dirname, '../frontend')));
-app.get('/*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/user/login.html')); // Sesuaikan dengan halaman utama kamu
+app.get('/:any*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/user/login.html'));
 });
 
 // 2. Rute untuk dashboard admin
