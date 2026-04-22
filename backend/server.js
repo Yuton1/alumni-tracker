@@ -578,12 +578,16 @@ app.delete('/api/user/pekerjaan/:id', (req, res) => {
   });
 });
 
+// ===== STATIC FILES & ROUTES =====
+
+// 1. Definisikan path ke folder frontend menggunakan process.cwd()
+// Ini memastikan Vercel mencari folder 'frontend' dari root project
 const frontendPath = path.resolve(process.cwd(), 'frontend');
 
 // 2. Sajikan file statis (CSS, JS, Gambar)
 app.use(express.static(frontendPath));
 
-// 3. Rute manual untuk halaman-halaman utama
+// 3. Rute manual untuk halaman utama aplikasi kamu
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(frontendPath, 'admin/dashboard.html'));
 });
@@ -601,15 +605,14 @@ app.get('/user', (req, res) => {
 });
 
 app.get('/user/profile', (req, res) => {
-  // Gunakan 'Profile' dengan P besar sesuai struktur foldermu
+  // Pastikan 'Profile' menggunakan P besar jika foldermu memang "Profile"
   res.sendFile(path.join(frontendPath, 'user/Profile/akademik.html'));
 });
 
-// 4. Rute Sapu Jagat (CATCH-ALL)
-// Di Express 5, dilarang pakai regex /:path((.*)) karena bikin error 500 di Vercel.
-// Cukup gunakan '*' saja untuk menangkap sisa rute.
+// 4. Rute Sapu Jagat (CATCH-ALL) - SOLUSI UNTUK ERROR LOG KAMU
+// Ganti rute yang menyebabkan error (/:path((.*))) menjadi '*' saja
 app.get('*', (req, res) => {
-  // Abaikan jika ada request API yang salah/nyasar
+  // Cegah request API yang salah agar tidak mengirim file HTML
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ error: 'API route not found' });
   }
@@ -618,9 +621,8 @@ app.get('*', (req, res) => {
   
   res.sendFile(loginPath, (err) => {
     if (err) {
-      console.error("Gagal mengirim file:", err.message);
-      // Pesan error ini membantu kita debug lokasi file di log Vercel jika masih gagal
-      res.status(404).send(`File HTML tidak ditemukan. Sistem mencari di: ${loginPath}`);
+      console.error("Gagal mengirim file login:", err.message);
+      res.status(404).send(`Halaman tidak ditemukan. Sistem mencari di: ${loginPath}`);
     }
   });
 });
