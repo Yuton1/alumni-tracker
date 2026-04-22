@@ -5,7 +5,10 @@
       "src": "backend/server.js",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["frontend/**"]
+        "includeFiles": [
+          "frontend/**",
+          "frontend/user/**"
+        ]
       }
     }
   ],
