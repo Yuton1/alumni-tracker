@@ -614,14 +614,16 @@ app.get(/^\/(.*)/, (req, res) => {
     return res.status(404).json({ error: 'API route not found' });
   }
 
-  // Gunakan path.join untuk memastikan rute yang benar
-  // Struktur: alumni-tracker/backend -> naik ke alumni-tracker -> masuk ke frontend/user/login.html
-  const loginPath = path.join(__dirname, '..', 'frontend', 'user', 'login.html');
+  // Gunakan path.join dengan process.cwd() 
+  // process.cwd() akan merujuk ke root project (alumni-tracker)
+  const loginPath = path.join(process.cwd(), 'frontend', 'user', 'login.html');
   
+  console.log("Mencoba akses file di:", loginPath);
+
   res.sendFile(loginPath, (err) => {
     if (err) {
-      console.error("Gagal mengirim file:", err);
-      res.status(404).send("File HTML tidak ditemukan di server Vercel.");
+      console.error("Gagal mengirim file. Detail:", err.message);
+      res.status(404).send(`File tidak ditemukan. Lokasi sistem: ${loginPath}`);
     }
   });
 });
