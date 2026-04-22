@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2');
 const path = require('path');
+const os = require('os');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 
@@ -40,8 +41,13 @@ db.getConnection((err, connection) => {
 });
 
 const storage = multer.diskStorage({
-  destination: './uploads/',
-  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
+  destination: (req, file, cb) => {
+    // os.tmpdir() akan mengarahkan ke folder /tmp di Vercel
+    cb(null, os.tmpdir()); 
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
 });
 
 const upload = multer({
@@ -576,6 +582,9 @@ app.post('/api/register', (req, res) => {
 
 // 1. Sajikan folder frontend
 app.use(express.static(path.join(__dirname, '../frontend')));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/user/login.html')); // Sesuaikan dengan halaman utama kamu
+});
 
 // 2. Rute untuk dashboard admin
 app.get('/admin', (req, res) => {
