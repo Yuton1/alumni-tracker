@@ -610,7 +610,7 @@ app.get('/user/profile', (req, res) => {
 
 // 4. Rute Sapu Jagat (CATCH-ALL) - SOLUSI UNTUK ERROR LOG KAMU
 // Ganti rute yang menyebabkan error (/:path((.*))) menjadi '*' saja
-app.get('*', (req, res) => {
+app.get('/:path*', (req, res) => {
   // Cegah request API yang salah agar tidak mengirim file HTML
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ error: 'API route not found' });
