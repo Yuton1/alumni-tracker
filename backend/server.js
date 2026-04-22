@@ -21,7 +21,7 @@ const db = mysql.createPool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
-  port: process.env.DB_PORT || 4000, // TiDB menggunakan port 4000
+  port: process.env.DB_PORT || 4000,
   ssl: {
     minVersion: 'TLSv1.2',
     rejectUnauthorized: true
@@ -42,8 +42,7 @@ db.getConnection((err, connection) => {
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // os.tmpdir() akan mengarahkan ke folder /tmp di Vercel
-    cb(null, os.tmpdir()); 
+    cb(null, os.tmpdir());
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname));
@@ -70,7 +69,6 @@ function authenticateToken(req, res, next) {
     return res.status(401).json({ message: 'Akses ditolak, token tidak ada' });
   }
 
-  // Gunakan JWT_SECRET (bukan string manual)
   jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err) {
       return res.status(403).json({ message: 'Token tidak valid' });
@@ -157,6 +155,8 @@ function normalizeFotoProfilPath(rawPath) {
   return `/uploads/${value}`;
 }
 
+// ===== AUTH ENDPOINTS =====
+
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
 
@@ -192,6 +192,55 @@ app.post('/api/login', (req, res) => {
   });
 });
 
+app.post('/api/register', (req, res) => {
+  const { username, password, alumni_id } = req.body;
+
+  console.log(`Mencoba daftar: User=${username}, ID=${alumni_id}`);
+
+  db.query('SELECT id FROM masteralumni WHERE id = ?', [alumni_id], (err, alumniResults) => {
+    if (err) {
+      console.error('Error Master:', err.message);
+      return res.status(500).json({ success: false, message: 'Database error saat cek master' });
+    }
+
+    if (alumniResults.length === 0) {
+      return res.status(400).json({ success: false, message: 'ID Master Alumni tidak ditemukan!' });
+    }
+
+    db.query('SELECT id FROM users WHERE alumni_id = ?', [alumni_id], (idErr, idResults) => {
+      if (idErr) {
+        return res.status(500).json({ success: false, message: 'Database error saat cek ID alumni' });
+      }
+      if (idResults.length > 0) {
+        return res.status(400).json({ success: false, message: 'ID Alumni ini sudah memiliki akun' });
+      }
+
+      db.query('SELECT id FROM users WHERE username = ?', [username], (userErr, userResults) => {
+        if (userErr) {
+          return res.status(500).json({ success: false, message: 'Database error saat cek username' });
+        }
+        if (userResults.length > 0) {
+          return res.status(400).json({ success: false, message: 'Username sudah digunakan' });
+        }
+
+        const sql = 'INSERT INTO users (username, password, alumni_id, role, foto_profil, email, tahun_lulus) VALUES (?, ?, ?, ?, NULL, NULL, NULL)';
+        const values = [username, password, alumni_id, 'alumni'];
+
+        db.query(sql, values, (insertErr) => {
+          if (insertErr) {
+            console.error('GAGAL INSERT:', insertErr.sqlMessage || insertErr.message);
+            return res.status(500).json({ success: false, message: `Gagal simpan: ${insertErr.sqlMessage || insertErr.message}` });
+          }
+          console.log('Registrasi Berhasil!');
+          return res.json({ success: true, message: 'Registrasi Berhasil!' });
+        });
+      });
+    });
+  });
+});
+
+// ===== ADMIN ENDPOINTS =====
+
 app.get('/api/stats', (req, res) => {
   db.query('SELECT status_pelacakan AS status, COUNT(*) AS count FROM alumnitracking GROUP BY status_pelacakan', (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -221,7 +270,6 @@ app.get('/api/master-alumni', (req, res) => {
 app.get('/api/master-alumni/:id', authenticateToken, (req, res) => {
   const id = req.params.id;
   
-  // Kita buat alias (AS) agar nama kolom dari DB pas dengan ID di HTML
   const sql = `
     SELECT 
       m.id,
@@ -255,10 +303,7 @@ app.get('/api/master-alumni/:id', authenticateToken, (req, res) => {
       return res.status(404).json({ message: 'Alumni tidak ditemukan' });
     }
 
-    // Console log ini untuk kamu cek di terminal Laragon, 
-    // pastikan datanya muncul di situ sebelum dikirim ke browser
     console.log("Data yang dikirim ke Frontend:", results);
-    
     res.json(results); 
   });
 });
@@ -533,83 +578,55 @@ app.delete('/api/user/pekerjaan/:id', (req, res) => {
   });
 });
 
-app.post('/api/register', (req, res) => {
-  const { username, password, alumni_id } = req.body;
+// ===== STATIC FILES & ROUTES =====
 
-  console.log(`Mencoba daftar: User=${username}, ID=${alumni_id}`);
-
-  db.query('SELECT id FROM masteralumni WHERE id = ?', [alumni_id], (err, alumniResults) => {
-    if (err) {
-      console.error('Error Master:', err.message);
-      return res.status(500).json({ success: false, message: 'Database error saat cek master' });
-    }
-
-    if (alumniResults.length === 0) {
-      return res.status(400).json({ success: false, message: 'ID Master Alumni tidak ditemukan!' });
-    }
-
-    db.query('SELECT id FROM users WHERE alumni_id = ?', [alumni_id], (idErr, idResults) => {
-      if (idErr) {
-        return res.status(500).json({ success: false, message: 'Database error saat cek ID alumni' });
-      }
-      if (idResults.length > 0) {
-        return res.status(400).json({ success: false, message: 'ID Alumni ini sudah memiliki akun' });
-      }
-
-      db.query('SELECT id FROM users WHERE username = ?', [username], (userErr, userResults) => {
-        if (userErr) {
-          return res.status(500).json({ success: false, message: 'Database error saat cek username' });
-        }
-        if (userResults.length > 0) {
-          return res.status(400).json({ success: false, message: 'Username sudah digunakan' });
-        }
-
-        const sql = 'INSERT INTO users (username, password, alumni_id, role, foto_profil, email, tahun_lulus) VALUES (?, ?, ?, ?, NULL, NULL, NULL)';
-        const values = [username, password, alumni_id, 'alumni'];
-
-        db.query(sql, values, (insertErr) => {
-          if (insertErr) {
-            console.error('GAGAL INSERT:', insertErr.sqlMessage || insertErr.message);
-            return res.status(500).json({ success: false, message: `Gagal simpan: ${insertErr.sqlMessage || insertErr.message}` });
-          }
-          console.log('Registrasi Berhasil!');
-          return res.json({ success: true, message: 'Registrasi Berhasil!' });
-        });
-      });
-    });
-  });
-});
-
-// 1. Sajikan folder frontend
+// Serve static files
 app.use(express.static(path.join(__dirname, '../frontend')));
-app.get(/^\/(.*)/, (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/user/login.html'));
-});
 
-// 2. Rute untuk dashboard admin
+// Specific routes untuk halaman frontend
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/admin/dashboard.html'));
 });
 
-// 3. Penangkap Error 404 (Middleware Catch-all)
+app.get('/admin/dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/admin/dashboard.html'));
+});
+
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/user/login.html'));
+});
+
+app.get('/register', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/user/register.html'));
+});
+
+app.get('/user', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/user/user.html'));
+});
+
+app.get('/user/profile', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/user/Profile/akademik.html'));
+});
+
+// Default route
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/user/login.html'));
+});
+
+// ===== 404 HANDLER - HARUS PALING AKHIR =====
 app.use((req, res) => {
   if (req.path.startsWith('/api')) {
-    // Jika rute API tidak ditemukan, kirim JSON
-    res.status(404).json({ message: "API route not found" });
+    res.status(404).json({ error: 'API route not found', path: req.path });
   } else {
-    // Jika rute frontend tidak ditemukan, kembali ke dashboard
-    res.sendFile(path.join(__dirname, '../frontend/admin/dashboard.html'));
+    res.sendFile(path.join(__dirname, '../frontend/user/login.html'));
   }
 });
 
-// 4. Menjalankan Server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
+// ===== START SERVER =====
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-} 
+// Export untuk Vercel
 module.exports = app;
