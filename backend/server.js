@@ -582,7 +582,7 @@ app.post('/api/register', (req, res) => {
 
 // 1. Sajikan folder frontend
 app.use(express.static(path.join(__dirname, '../frontend')));
-app.get('/:any*', (req, res) => {
+app.get('/:path*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/user/login.html'));
 });
 
