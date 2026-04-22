@@ -580,8 +580,6 @@ app.delete('/api/user/pekerjaan/:id', (req, res) => {
 
 // ===== STATIC FILES & ROUTES =====
 
-// 1. Definisikan path ke folder frontend menggunakan process.cwd()
-// Ini memastikan Vercel mencari folder 'frontend' dari root project
 const frontendPath = path.resolve(process.cwd(), 'frontend');
 
 // 2. Sajikan file statis (CSS, JS, Gambar)
