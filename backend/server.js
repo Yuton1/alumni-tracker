@@ -579,7 +579,7 @@ app.delete('/api/user/pekerjaan/:id', (req, res) => {
 });
 
 // ===== STATIC FILES & ROUTES =====
-// haloo ini percobaan deploy
+// haloo ini percobaan deploy sekarang
 
 const frontendPath = path.resolve(process.cwd(), 'frontend');
 
