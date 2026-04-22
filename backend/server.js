@@ -20,7 +20,14 @@ const db = mysql.createPool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
-  port: process.env.DB_PORT || 3306
+  port: process.env.DB_PORT || 4000, // TiDB menggunakan port 4000
+  ssl: {
+    minVersion: 'TLSv1.2',
+    rejectUnauthorized: true
+  },
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
 db.getConnection((err, connection) => {
@@ -48,6 +55,24 @@ const upload = multer({
     cb(new Error('Hanya file gambar yang diperbolehkan!'));
   }
 }).single('foto');
+
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ');
+
+  if (!token) {
+    return res.status(401).json({ message: 'Akses ditolak, token tidak ada' });
+  }
+
+  // Gunakan JWT_SECRET (bukan string manual)
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: 'Token tidak valid' });
+    }
+    req.user = user;
+    next();
+  });
+}
 
 function createProfiling(alumni) {
   const parts = alumni.nama ? alumni.nama.split(' ') : [];
@@ -184,6 +209,51 @@ app.get('/api/master-alumni', (req, res) => {
   db.query(sql, (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows.map(createProfiling));
+  });
+});
+
+app.get('/api/master-alumni/:id', authenticateToken, (req, res) => {
+  const id = req.params.id;
+  
+  // Kita buat alias (AS) agar nama kolom dari DB pas dengan ID di HTML
+  const sql = `
+    SELECT 
+      m.id,
+      m.nama,
+      m.prodi,
+      m.fakultas,
+      m.kota,
+      m.tahun_lulus,
+      COALESCE(t.status_pelacakan, 'Belum Dilacak') AS status_pelacakan,
+      p.nama_perusahaan, 
+      p.posisi, 
+      p.jenis_instansi, 
+      p.alamat_kerja,
+      p.linkedin_url,
+      p.ig_url,
+      p.fb_url
+    FROM masteralumni m 
+    LEFT JOIN alumnitracking t ON m.id = t.id 
+    LEFT JOIN users u ON m.id = u.alumni_id
+    LEFT JOIN pekerjaan_alumni p ON u.id = p.user_id
+    WHERE m.id = ?
+    ORDER BY p.id DESC
+    LIMIT 1`;
+  
+  db.query(sql, [id], (err, results) => {
+    if (err) {
+      console.error("Database Error:", err.message);
+      return res.status(500).json({ error: "Gagal mengambil data" });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Alumni tidak ditemukan' });
+    }
+
+    // Console log ini untuk kamu cek di terminal Laragon, 
+    // pastikan datanya muncul di situ sebelum dikirim ke browser
+    console.log("Data yang dikirim ke Frontend:", results);
+    
+    res.json(results); 
   });
 });
 
@@ -504,14 +574,33 @@ app.post('/api/register', (req, res) => {
   });
 });
 
+// 1. Sajikan folder frontend
 app.use(express.static(path.join(__dirname, '../frontend')));
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/admin/index.html'));
+
+// 2. Rute untuk dashboard admin
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/admin/dashboard.html'));
 });
 
-app.listen(PORT, () => console.log(`Backend running at port ${PORT}`));
-app.get('/api/master-alumni/:id', async (req, res) => {
-    const id = req.params.id;
-    const query = "SELECT * FROM alumni_table WHERE id = ?";
-
+// 3. Penangkap Error 404 (Middleware Catch-all)
+app.use((req, res) => {
+  if (req.path.startsWith('/api')) {
+    // Jika rute API tidak ditemukan, kirim JSON
+    res.status(404).json({ message: "API route not found" });
+  } else {
+    // Jika rute frontend tidak ditemukan, kembali ke dashboard
+    res.sendFile(path.join(__dirname, '../frontend/admin/dashboard.html'));
+  }
 });
+
+// 4. Menjalankan Server
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+} 
+module.exports = app;

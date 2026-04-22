@@ -393,7 +393,7 @@
 </head>
 <body>
   <div class="container py-4">
-    <a href="index.html" class="back-button">
+    <a href="dashboard.html" class="back-button">
       <i class="fas fa-arrow-left"></i> Kembali ke Daftar Alumni
     </a>
 
@@ -511,74 +511,130 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    // 1. Tangkap ID dari URL (Contoh: detailprofile.html?id=5)
     const params = new URLSearchParams(window.location.search);
     const idAlumni = params.get('id');
-    const token = localStorage.getItem('token');
+    
+    // 2. Gunakan origin untuk mendukung Railway dan Localhost
+    const API_BASE = "https://nama-proyek-anda.vercel.app";
+  
     function getToken() {
-    return localStorage.getItem('token');
+      return localStorage.getItem('token');
     }
-
+  
     async function loadDataAlumni() {
-        if (!idAlumni) {
-            alert("ID tidak valid");
-            return;
+      if (!idAlumni) {
+        alert("ID Alumni tidak valid atau tidak ditemukan.");
+        window.location.href = 'dashboard.html';
+        return;
+      }
+    
+      try {
+        const token = getToken();
+        if (!token) {
+          alert("Sesi berakhir. Silakan login kembali.");
+          window.location.href = '../user/login.html';
+          return;
         }
-
-        try {
-            // Memanggil endpoint baru yang kita buat di server.js
-            const response = await fetch(`http://localhost:3000/api/admin/alumni-detail/${idAlumni}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (!response.ok) throw new Error("Gagal mengambil data");
-            const data = await response.json();
-
-            // --- RENDER KE TAMPILAN ---
-            
-            // 1. Header & Avatar
-            document.getElementById('profileName').textContent = data.nama;
-            document.getElementById('profileId').textContent = '#' + data.id;
-            document.getElementById('profileProdi').textContent = data.prodi;
-            document.getElementById('profileYear').textContent = data.tahun_lulus;
-            
-            const initials = data.nama.split(' ').map(n => n).join('').toUpperCase();
-            document.getElementById('profileAvatar').textContent = initials;
-
-            // 2. Info Akademik
-            document.getElementById('academicProdi').textContent = data.prodi || '-';
-            document.getElementById('academicFaculty').textContent = data.fakultas || 'Teknik';
-            document.getElementById('academicYear').textContent = data.tahun_lulus || '-';
-            document.getElementById('academicCity').textContent = data.kota || '-';
-
-            // 3. Info Pekerjaan
-            document.getElementById('employmentCompany').textContent = data.nama_perusahaan || 'Belum ada data';
-            document.getElementById('employmentPosition').textContent = data.posisi || '-';
-            document.getElementById('employmentCategory').textContent = data.jenis_instansi || '-';
-            document.getElementById('employmentLocation').textContent = data.alamat_kerja || '-';
-
-            // 4. Social Media
-            const socialContainer = document.getElementById('socialLinks');
-            let socialHTML = '';
-            if (data.linkedin_url) {
-                socialHTML += `<a href="${data.linkedin_url}" target="_blank" class="social-link"><i class="fab fa-linkedin"></i> LinkedIn</a>`;
-            }
-            if (data.ig_url) {
-                socialHTML += `<a href="${data.ig_url}" target="_blank" class="social-link"><i class="fab fa-instagram"></i> Instagram</a>`;
-            }
-            socialContainer.innerHTML = socialHTML || '<div class="info-value empty">Belum ada data media sosial</div>';
-
-            // 5. Update Status Tracking
-            if(data.status_pelacakan) {
-                document.getElementById('statusBadge').innerHTML = `<i class="fas fa-check-circle me-1"></i> ${data.status_pelacakan}`;
-            }
-
-        } catch (error) {
-            console.error(error);
-            alert("Gagal memuat profil alumni");
+      
+        // 3. Panggil endpoint yang SUDAH ADA di server.js kita
+        const response = await fetch(`${API_BASE}/api/master-alumni/${idAlumni}`, {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+      
+        if (!response.ok) {
+          if (response.status === 404) throw new Error("Data alumni tidak ditemukan di database.");
+          if (response.status === 401) throw new Error("Tidak ada akses. Silakan login ulang.");
+          throw new Error("Gagal mengambil data dari server.");
         }
+        
+        const data = await response.json();
+      
+        // --- RENDER KE TAMPILAN ---
+        
+        // 1. Header & Avatar
+        document.getElementById('profileName').textContent = data.nama || 'Nama Tidak Diketahui';
+        document.getElementById('profileId').textContent = '#' + data.id;
+        document.getElementById('profileProdi').textContent = data.prodi || '-';
+        
+        // Ambil tahun_lulus atau tanggal_lulus
+        const tahun = data.tahun_lulus || (data.tanggal_lulus ? new Date(data.tanggal_lulus).getFullYear() : '-');
+        document.getElementById('profileYear').textContent = tahun;
+        
+        // Buat Inisial (Maksimal 2 huruf)
+        if (data.nama) {
+           const words = data.nama.split(' ');
+           const initials = words.length > 1 
+              ? (words + words).toUpperCase()
+              : words.toUpperCase();
+           document.getElementById('profileAvatar').textContent = initials;
+        } else {
+           document.getElementById('profileAvatar').textContent = 'NA';
+        }
+      
+        // 2. Info Akademik
+        document.getElementById('academicProdi').textContent = data.prodi || '-';
+        document.getElementById('academicFaculty').textContent = data.fakultas || '-';
+        document.getElementById('academicYear').textContent = tahun;
+        document.getElementById('academicCity').textContent = data.kota || '-';
+      
+        // 3. Info Pekerjaan (Catatan: Ini akan '-' jika masteralumni tidak di-JOIN dengan pekerjaan_alumni di server.js)
+        document.getElementById('employmentCompany').textContent = data.nama_perusahaan || '-';
+        document.getElementById('employmentPosition').textContent = data.posisi || '-';
+        document.getElementById('employmentCategory').textContent = data.jenis_instansi || '-';
+        document.getElementById('employmentLocation').textContent = data.alamat_kerja || '-';
+      
+        // 4. Social Media
+        const socialContainer = document.getElementById('socialLinks');
+        let socialHTML = '';
+        if (data.linkedin_url) {
+          socialHTML += `<a href="${data.linkedin_url}" target="_blank" class="social-link"><i class="fab fa-linkedin"></i> LinkedIn</a>`;
+        }
+        if (data.ig_url) {
+          socialHTML += `<a href="${data.ig_url}" target="_blank" class="social-link"><i class="fab fa-instagram"></i> Instagram</a>`;
+        }
+        if (data.fb_url) {
+          socialHTML += `<a href="${data.fb_url}" target="_blank" class="social-link"><i class="fab fa-facebook"></i> Facebook</a>`;
+        }
+        
+        socialContainer.innerHTML = socialHTML || '<div class="info-value empty">Belum ada data media sosial</div>';
+      
+        // 5. Update Status Tracking
+        const statusBadge = document.getElementById('statusBadge');
+        const statusText = data.status_pelacakan || 'Belum Dilacak';
+        
+        if (statusText === 'Teridentifikasi dari sumber publik') {
+          statusBadge.className = 'status-badge verified';
+          statusBadge.innerHTML = `<i class="fas fa-check-circle me-1"></i> ${statusText}`;
+        } else if (statusText === 'Perlu Verifikasi Manual') {
+          statusBadge.className = 'status-badge pending';
+          statusBadge.innerHTML = `<i class="fas fa-exclamation-circle me-1"></i> ${statusText}`;
+        } else {
+          statusBadge.className = 'status-badge unverified';
+          statusBadge.innerHTML = `<i class="fas fa-question-circle me-1"></i> ${statusText}`;
+        }
+      
+      } catch (error) {
+        console.error("Error Detail Profil:", error);
+        alert(error.message);
+      }
     }
-
+  
+    // Placeholder functions for action buttons
+    function triggerAutomatedSearch() {
+       alert('Fitur pencarian otomatis ulang segera hadir.');
+    }
+    function validateManually() {
+       alert('Fitur verifikasi manual segera hadir.');
+    }
+    function viewFullEvidence() {
+       alert('Fitur melihat bukti lengkap segera hadir.');
+    }
+  
     document.addEventListener('DOMContentLoaded', loadDataAlumni);
-</script>
+  </script>
 </body>
 </html>

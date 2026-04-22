@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Alumni Tracker Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f3f6ff;
+      --line: #d9e2f1;
+      --blue: #2563eb;
+      --cyan: #0284c7;
+      --ink: #0f172a;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(37, 99, 235, 0.1), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(2, 132, 199, 0.1), transparent 35%),
+        var(--bg);
+      color: #1f2937;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      background: linear-gradient(120deg, #1e3a8a, #0284c7);
+      color: #fff;
+      border-radius: 18px;
+      box-shadow: 0 14px 34px rgba(30, 58, 138, 0.22);
+      padding: 16px 18px;
+      margin-bottom: 24px;
+    }
+
+    .topbar h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .topbar p {
+      font-size: 0.95rem;
+      opacity: 0.85;
+      margin-bottom: 0;
+    }
+
+    .stat-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px;
+      border: 0;
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
+      color: #fff;
+    }
+
+    .stat-card.success {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .stat-card.warning {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+
+    .stat-card.info {
+      background: linear-gradient(135deg, #06b6d4, #0891b2);
+    }
+
+    .stat-card.secondary {
+      background: linear-gradient(135deg, #6b7280, #4b5563);
+    }
+
+    .stat-card small {
+      display: block;
+      font-size: 0.85rem;
+      opacity: 0.9;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .stat-card h3 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .panel {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07);
+      padding: 24px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .tab-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      padding: 8px 16px;
+      border: 2px solid var(--blue);
+      background: #fff;
+      color: var(--blue);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .tab-btn:hover {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .search-box {
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .table-responsive {
+      margin-top: 16px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      overflow: hidden;
+    }
+
+    .table {
+      margin-bottom: 0;
+    }
+
+    .table thead th {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: #64748b;
+      border-bottom: 2px solid var(--line);
+      background: #f8fbff;
+      font-weight: 600;
+      padding: 12px;
+    }
+
+    .table tbody td {
+      vertical-align: middle;
+      border-color: #edf2fb;
+      font-size: 0.9rem;
+      padding: 12px;
+    }
+
+    .table tbody tr:hover {
+      background: #f9fbff;
+      cursor: pointer;
+    }
+
+    .status-pill {
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .status-pill.success {
+      background: rgba(16, 185, 129, 0.15);
+      color: #059669;
+    }
+
+    .status-pill.warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: #d97706;
+    }
+
+    .status-pill.info {
+      background: rgba(6, 182, 212, 0.15);
+      color: #0891b2;
+    }
+
+    .status-pill.secondary {
+      background: rgba(107, 114, 128, 0.15);
+      color: #4b5563;
+    }
+
+    .btn-action {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      border: 0;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-action.primary {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .btn-action.primary:hover {
+      background: #1d4ed8;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .pagination-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      font-size: 0.9rem;
+      color: #64748b;
+    }
+
+    .pagination-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .pagination-btn {
+      padding: 6px 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--blue);
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    .pagination-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #cbd5e1;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-light {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-light:hover {
+      background: rgba(255,255,255,0.3);
+      color: #fff;
+    }
+
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1050;
+    }
+
+    .toast {
+      padding: 12px 16px;
+      background: #fff;
+      border-left: 4px solid var(--blue);
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin-bottom: 8px;
+      animation: slideIn 0.3s ease;
+    }
+
+    .toast.success {
+      border-left-color: #10b981;
+    }
+
+    .toast.warning {
+      border-left-color: #f59e0b;
+    }
+
+    .toast.error {
+      border-left-color: #ef4444;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .topbar {
+        padding: 12px 16px;
+      }
+
+      .topbar h1 {
+        font-size: 1.3rem;
+      }
+
+      .panel-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .tab-buttons {
+        width: 100%;
+      }
+
+      .tab-btn {
+        flex: 1;
+        text-align: center;
+      }
+
+      .search-box {
+        max-width: 100%;
+      }
+
+      .stat-card h3 {
+        font-size: 2rem;
+      }
+
+      .pagination-info {
+        flex-direction: column;
+        gap: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <!-- Topbar -->
+    <section class="topbar">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <h1>Admin Pelacakan Alumni</h1>
+          <p>Monitoring status pelacakan, profil target, dan validasi hasil.</p>
+        </div>
+        <div class="button-group">
+          <button class="btn-light" id="refreshBtn">
+            <i class="fas fa-rotate me-2"></i> Refresh
+          </button>
+          <button class="btn-light" id="logoutBtn">
+            <i class="fas fa-right-from-bracket me-2"></i> Logout
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stat Cards -->
+    <div class="stat-cards">
+      <div class="stat-card success">
+        <small>Teridentifikasi</small>
+        <h3 id="statTeridentifikasi">0</h3>
+      </div>
+      <div class="stat-card warning">
+        <small>Perlu Verifikasi</small>
+        <h3 id="statVerifikasi">0</h3>
+      </div>
+      <div class="stat-card info">
+        <small>Belum Ditemukan</small>
+        <h3 id="statBelumDitemukan">0</h3>
+      </div>
+      <div class="stat-card secondary">
+        <small>Total Master Alumni</small>
+        <h3 id="statTotal">0</h3>
+      </div>
+    </div>
+
+    <!-- Main Panel -->
+    <section class="panel">
+      <div class="panel-header">
+        <div class="tab-buttons">
+          <button class="tab-btn active" data-tab="antrean">
+            <i class="fas fa-list-check me-2"></i>Antrean Pelacakan
+          </button>
+          <button class="tab-btn" data-tab="master">
+            <i class="fas fa-database me-2"></i>Master Alumni
+          </button>
+        </div>
+        <input type="text" class="search-box" id="searchInput" placeholder="Cari nama, prodi, kota...">
+      </div>
+
+      <!-- Table Container -->
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width: 70px;">ID</th>
+              <th>Nama</th>
+              <th>Prodi</th>
+              <th>Kota</th>
+              <th>Tahun</th>
+              <th>Status</th>
+              <th style="width: 110px;" class="text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="dataBody">
+            <tr>
+              <td colspan="7" class="text-center" style="padding: 40px 20px; color: #cbd5e1;">
+                <i class="fas fa-spinner fa-spin me-2"></i> Memuat data...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-info">
+        <span>Menampilkan <strong id="pageInfo">0-0</strong> dari <strong id="totalInfo">0</strong> data</span>
+        <div class="pagination-controls">
+          <button class="pagination-btn" id="prevBtn" disabled>
+            <i class="fas fa-chevron-left me-1"></i> Sebelumnya
+          </button>
+          <span id="pageNumber" style="padding: 6px 12px; color: #64748b; font-weight: 600;"></span>
+          <button class="pagination-btn" id="nextBtn">
+            Selanjutnya <i class="fas fa-chevron-right ms-1"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // ===== CONFIGURATION =====
+    const API_BASE = window.location.origin; // Sesuaikan dengan URL backend Anda
+    const ENDPOINTS = {
+      STATS: '/api/stats',
+      ANTREAN: '/api/antrean',
+      MASTER_ALUMNI: '/api/master-alumni',
+      TRACK: '/api/track'
+    };
+
+    // ===== STATE MANAGEMENT =====
+    const state = {
+      activeTab: 'antrean',
+      antrean: [],
+      master: [],
+      filteredData: [],
+      currentPage: 1,
+      itemsPerPage: 10,
+      totalItems: 0,
+      searchQuery: ''
+    };
+
+    // ===== UTILITY FUNCTIONS =====
+    function getToken() {
+      return localStorage.getItem('token');
+    }
+
+    function showToast(message, type = 'info') {
+      const id = `toast-${Date.now()}`;
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.id = id;
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<strong>${type.charAt(0).toUpperCase() + type.slice(1)}:</strong> ${message}`;
+      
+      container.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
+
+    function escapeHtml(value) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      };
+      return String(value ?? '').replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.replace('../user/login.html');
+    }
+
+    async function authorizedFetch(endpoint, options = {}) {
+      const url = `${API_BASE}${endpoint}`;
+      const headers = new Headers(options.headers || {});
+      const token = getToken();
+      if (token) headers.set('Authorization', `Bearer ${token}`);
+
+      try {
+        const response = await fetch(url, { ...options, headers });
+
+        // Jika 401 (Unauthorized)
+        if (response.status === 401) {
+          showToast('Sesi berakhir. Silakan login ulang.', 'warning');
+          setTimeout(logout, 800);
+          return;
+        }
+
+        // Ambil data JSON
+        const payload = await response.json();
+
+        if (!response.ok) {
+          throw new Error(payload.message || `Error ${response.status}: Gagal memuat data.`);
+        }
+        return payload;
+      } catch (error) {
+        console.error('Fetch Error:', error);
+        // Jika error karena jaringan/URL salah
+        if (error.message === 'Failed to fetch') {
+          showToast('Tidak dapat terhubung ke server. Cek URL API_BASE.', 'error');
+        }
+        throw error;
+      }
+    }
+
+    function requireAdminAccess() {
+      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+      const role = localStorage.getItem('role');
+      if (!isLoggedIn || role !== 'admin') {
+        window.location.replace('../user/login.html');
+        return false;
+      }
+      return true;
+    }
+
+    // ===== DATA LOADING =====
+    async function updateStats() {
+      try {
+        const stats = await authorizedFetch(ENDPOINTS.STATS);
+        document.getElementById('statTeridentifikasi').textContent = stats['Teridentifikasi dari sumber publik'] || 0;
+        document.getElementById('statVerifikasi').textContent = stats['Perlu Verifikasi Manual'] || 0;
+        document.getElementById('statBelumDitemukan').textContent = stats['Belum ditemukan di sumber publik'] || 0;
+        document.getElementById('statTotal').textContent = stats.totalAlumni || 0;
+      } catch (error) {
+        console.error('Error loading stats:', error);
+        showToast('Gagal memuat statistik', 'error');
+      }
+    }
+
+    async function loadAntrean() {
+      try {
+        const response = await authorizedFetch(ENDPOINTS.ANTREAN);
+        state.antrean = Array.isArray(response) ? response : response.data || [];
+      } catch (error) {
+        console.error('Error loading antrean:', error);
+        showToast('Gagal memuat data antrean', 'error');
+      }
+    }
+
+    async function loadMaster() {
+      try {
+        const response = await authorizedFetch(ENDPOINTS.MASTER_ALUMNI);
+        state.master = Array.isArray(response) ? response : response.data || [];
+      } catch (error) {
+        console.error('Error loading master:', error);
+        showToast('Gagal memuat data master alumni', 'error');
+      }
+    }
+
+    // ===== TABLE RENDERING =====
+    function getStatusBadge(status) {
+      if (!status || status === 'Belum Dilacak') return '<span class="status-pill secondary">Belum Dilacak</span>';
+      if (status === 'Teridentifikasi dari sumber publik') return `<span class="status-pill success">${escapeHtml(status)}</span>`;
+      if (status === 'Perlu Verifikasi Manual') return `<span class="status-pill warning">${escapeHtml(status)}</span>`;
+      return `<span class="status-pill info">${escapeHtml(status)}</span>`;
+    }
+
+    function filterData() {
+      const search = state.searchQuery.toLowerCase().trim();
+      const sourceData = state.activeTab === 'antrean' ? state.antrean : state.master;
+      
+      if (!search) {
+        state.filteredData = sourceData;
+      } else {
+        state.filteredData = sourceData.filter(item => {
+          const searchText = `${item.nama || ''} ${item.prodi || ''} ${item.kota || ''}`.toLowerCase();
+          return searchText.includes(search);
+        });
+      }
+
+      state.totalItems = state.filteredData.length;
+      state.currentPage = 1;
+      updatePagination();
+      renderTable();
+    }
+
+    function updatePagination() {
+      const start = (state.currentPage - 1) * state.itemsPerPage;
+      const end = Math.min(start + state.itemsPerPage, state.totalItems);
+      const totalPages = Math.ceil(state.totalItems / state.itemsPerPage);
+
+      document.getElementById('pageInfo').textContent = `${start + 1}-${end}`;
+      document.getElementById('totalInfo').textContent = state.totalItems;
+      document.getElementById('pageNumber').textContent = `Halaman ${state.currentPage} dari ${totalPages}`;
+      
+      document.getElementById('prevBtn').disabled = state.currentPage === 1;
+      document.getElementById('nextBtn').disabled = state.currentPage === totalPages || totalPages === 0;
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('dataBody');
+      const start = (state.currentPage - 1) * state.itemsPerPage;
+      const end = start + state.itemsPerPage;
+      const pageData = state.filteredData.slice(start, end);
+
+      if (!pageData.length) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center" style="padding: 40px 20px; color: #cbd5e1;">
+              <i class="fas fa-search me-2"></i> Data tidak ditemukan
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = pageData.map(item => {
+        const tahunLulus = item.tahun_lulus || item.tanggal_lulus || '-';
+        const canTrack = state.activeTab === 'antrean';
+        const status = item.status_pelacakan || 'Belum Dilacak';
+
+        return `
+          <tr data-detail-id="${item.id}">
+            <td>#${escapeHtml(item.id)}</td>
+            <td><strong>${escapeHtml(item.nama || '-')}</strong></td>
+            <td>${escapeHtml(item.prodi || '-')}</td>
+            <td>${escapeHtml(item.kota || '-')}</td>
+            <td>${escapeHtml(tahunLulus)}</td>
+            <td>${getStatusBadge(status)}</td>
+            <td class="text-center">
+              ${canTrack
+                ? `<button class="btn-action primary" data-track-id="${item.id}"><i class="fas fa-magnifying-glass me-1"></i>Track</button>`
+                : '<span style="color: #cbd5e1; font-size: 0.8rem;">-</span>'}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      updatePagination();
+    }
+
+    // ===== EVENT HANDLERS =====
+    function openProfileDetail(id) {
+      window.location.href = `detailprofile.html?id=${id}`;
+    }
+
+    async function trackAlumni(id) {
+      try {
+        const result = await authorizedFetch(`${ENDPOINTS.TRACK}/${id}`, { method: 'POST' });
+        showToast(`Tracking selesai. Status: ${result.status}`, 'success');
+        await refreshAll();
+      } catch (error) {
+        showToast(error.message, 'error');
+      }
+    }
+
+    function setActiveTab(tabName) {
+      state.activeTab = tabName;
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabName);
+      });
+      filterData();
+    }
+
+    async function refreshAll() {
+      try {
+        showToast('Memuat data...', 'info');
+        await Promise.all([updateStats(), loadAntrean(), loadMaster()]);
+        filterData();
+        showToast('Data berhasil diperbarui', 'success');
+      } catch (error) {
+        showToast('Gagal refresh data', 'error');
+      }
+    }
+
+    function bindEvents() {
+      // Tab buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => setActiveTab(btn.dataset.tab));
+      });
+
+      // Search input
+      document.getElementById('searchInput').addEventListener('input', (e) => {
+        state.searchQuery = e.target.value;
+        filterData();
+      });
+
+      // Pagination buttons
+      document.getElementById('prevBtn').addEventListener('click', () => {
+        if (state.currentPage > 1) {
+          state.currentPage--;
+          renderTable();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+
+      document.getElementById('nextBtn').addEventListener('click', () => {
+        const totalPages = Math.ceil(state.totalItems / state.itemsPerPage);
+        if (state.currentPage < totalPages) {
+          state.currentPage++;
+          renderTable();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+
+      // Table row clicks
+      document.getElementById('dataBody').addEventListener('click', (e) => {
+        const trackBtn = e.target.closest('[data-track-id]');
+        if (trackBtn) {
+          e.stopPropagation();
+          trackAlumni(trackBtn.dataset.trackId);
+          return;
+        }
+
+        const row = e.target.closest('[data-detail-id]');
+        if (row) {
+          openProfileDetail(row.dataset.detailId);
+        }
+      });
+
+      // Control buttons
+      document.getElementById('refreshBtn').addEventListener('click', refreshAll);
+      document.getElementById('logoutBtn').addEventListener('click', logout);
+    }
+
+    // ===== INITIALIZE =====
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!requireAdminAccess()) return;
+      
+      bindEvents();
+      await refreshAll();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Master Alumni - Alumni Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root { --bg: #f3f6ff; --line: #d9e2f1; --blue: #2563eb; --cyan: #0284c7; --ink: #0f172a; }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: #1f2937; min-height: 100vh; }
+    .topbar { background: linear-gradient(120deg, #1e3a8a, #0284c7); color: #fff; border-radius: 18px; padding: 16px 18px; margin-bottom: 16px; }
+    .panel { background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07); }
+    .table thead th { font-size: 0.8rem; text-transform: uppercase; color: #64748b; background: #f8fbff; }
+    .table tbody td { vertical-align: middle; font-size: 0.9rem; }
+    .row-clickable { cursor: pointer; }
+    .row-clickable:hover { background: #f9fbff; }
+    .status-pill { border-radius: 999px; padding: 5px 11px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; opacity: 0.6; display: inline-block; margin-right: 6px; }
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <section class="topbar d-flex justify-content-between align-items-center">
+      <div>
+        <h1 class="h4 mb-1 fw-semibold"><i class="fas fa-database me-2"></i>Master Alumni</h1>
+        <p class="mb-0 small opacity-75">Database lengkap seluruh alumni terdaftar.</p>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="dashboard.html" class="btn btn-outline-light btn-sm"><i class="fas fa-arrow-left me-1"></i> Dashboard</a>
+        <button class="btn btn-light btn-sm" id="refreshBtn"><i class="fas fa-rotate me-1"></i> Refresh</button>
+      </div>
+    </section>
+
+    <section class="panel p-3 p-lg-4">
+      <div class="d-flex justify-content-end mb-3">
+        <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Cari nama, prodi, kota..." style="max-width: 300px;">
+      </div>
+
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>ID</th><th>Nama</th><th>Prodi</th><th>Kota</th><th>Tahun</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="dataBody">
+            <tr><td colspan="6" class="text-center text-muted py-4">Memuat data master...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let masterData = [];
+
+    function getToken() { return localStorage.getItem('token'); }
+    
+    function showToast(msg, type = 'primary') {
+      const id = `toast-${Date.now()}`;
+      const html = `<div id="${id}" class="toast text-bg-${type} border-0" role="alert"><div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`;
+      document.getElementById('toastContainer').insertAdjacentHTML('beforeend', html);
+      const el = document.getElementById(id);
+      new bootstrap.Toast(el, { delay: 3000 }).show();
+      el.addEventListener('hidden.bs.toast', () => el.remove());
+    }
+
+    async function authorizedFetch(url, options = {}) {
+      const headers = new Headers(options.headers || {});
+      const token = getToken();
+      if (token) headers.set('Authorization', `Bearer ${token}`);
+      const res = await fetch(url, { ...options, headers });
+      if (res.status === 401) {
+        window.location.replace('../../login.html');
+        throw new Error('Unauthorized');
+      }
+      return res.json();
+    }
+
+    function statusBadge(status) {
+      if (!status) return '<span class="status-pill bg-secondary text-white"><span class="dot"></span>Belum Dilacak</span>';
+      if (status.includes('Teridentifikasi')) return `<span class="status-pill bg-success text-white"><span class="dot"></span>${status}</span>`;
+      return `<span class="status-pill bg-info text-white"><span class="dot"></span>${status}</span>`;
+    }
+
+    async function loadData() {
+      try {
+        masterData = await authorizedFetch(`/api/master-alumni?t=${Date.now()}`);
+        renderTable();
+      } catch (err) {
+        showToast('Gagal memuat master alumni', 'danger');
+      }
+    }
+
+    function renderTable() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = masterData.filter(item => `${item.nama} ${item.prodi} ${item.kota}`.toLowerCase().includes(search));
+      
+      const tbody = document.getElementById('dataBody');
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Data tidak ditemukan.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(item => `
+        <tr class="row-clickable" onclick="window.location.href='../detailprofile.html?id=${item.id}'">
+          <td>#${item.id}</td>
+          <td><strong>${item.nama || '-'}</strong></td>
+          <td>${item.prodi || '-'}</td>
+          <td>${item.kota || '-'}</td>
+          <td>${item.tahun_lulus || item.tanggal_lulus || '-'}</td>
+          <td>${statusBadge(item.status_pelacakan)}</td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('searchInput').addEventListener('input', renderTable);
+    document.getElementById('refreshBtn').addEventListener('click', loadData);
+    document.addEventListener('DOMContentLoaded', loadData);
+  </script>
+</body>
+</html>
