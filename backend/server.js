@@ -581,7 +581,7 @@ app.delete('/api/user/pekerjaan/:id', (req, res) => {
 // ===== STATIC FILES & ROUTES =====
 
 // Serve static files
-app.use(express.static(path.join(__dirname, '../frontend')));
+app.use(express.static(path.join(process.cwd(), 'frontend')));
 
 // Specific routes untuk halaman frontend
 app.get('/admin', (req, res) => {
@@ -590,10 +590,6 @@ app.get('/admin', (req, res) => {
 
 app.get('/admin/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/admin/dashboard.html'));
-});
-
-app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/user/login.html'));
 });
 
 app.get('/register', (req, res) => {
@@ -609,21 +605,19 @@ app.get('/user/profile', (req, res) => {
 });
 
 // Default route
-app.get(/^\/(.*)/, (req, res) => {
+app.get('*', (req, res) => {
+  // Abaikan jika ini adalah request API yang salah alamat
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ error: 'API route not found' });
   }
 
-  // Gunakan path.join dengan process.cwd() 
-  // process.cwd() akan merujuk ke root project (alumni-tracker)
+  // Arahkan semua akses halaman ke login.html menggunakan path absolut
   const loginPath = path.join(process.cwd(), 'frontend', 'user', 'login.html');
   
-  console.log("Mencoba akses file di:", loginPath);
-
   res.sendFile(loginPath, (err) => {
     if (err) {
-      console.error("Gagal mengirim file. Detail:", err.message);
-      res.status(404).send(`File tidak ditemukan. Lokasi sistem: ${loginPath}`);
+      console.error("Gagal mengirim file:", err.message);
+      res.status(404).send(`File tidak ditemukan di sistem Vercel. Jalur: ${loginPath}`);
     }
   });
 });
