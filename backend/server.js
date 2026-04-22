@@ -614,14 +614,14 @@ app.get(/^\/(.*)/, (req, res) => {
     return res.status(404).json({ error: 'API route not found' });
   }
 
-  // Gunakan path.join dengan .. untuk naik satu tingkat dari folder backend ke frontend
+  // Gunakan path.join untuk memastikan rute yang benar
+  // Struktur: alumni-tracker/backend -> naik ke alumni-tracker -> masuk ke frontend/user/login.html
   const loginPath = path.join(__dirname, '..', 'frontend', 'user', 'login.html');
   
   res.sendFile(loginPath, (err) => {
     if (err) {
       console.error("Gagal mengirim file:", err);
-      // Pesan ini yang muncul di layar Anda sekarang
-      res.status(404).send("File HTML tidak ditemukan. Pastikan folder 'frontend' sudah terunggah.");
+      res.status(404).send("File HTML tidak ditemukan di server Vercel.");
     }
   });
 });
