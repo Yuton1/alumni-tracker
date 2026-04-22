@@ -609,17 +609,22 @@ app.get('/user/profile', (req, res) => {
 });
 
 // Default route
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/user/login.html'));
-});
-
-// ===== 404 HANDLER - HARUS PALING AKHIR =====
-app.use((req, res) => {
+app.get(/^\/(.*)/, (req, res) => {
+  // Jika akses ke API tapi tidak terdaftar, beri JSON 404
   if (req.path.startsWith('/api')) {
-    res.status(404).json({ error: 'API route not found', path: req.path });
-  } else {
-    res.sendFile(path.join(__dirname, '../frontend/user/login.html'));
+    return res.status(404).json({ error: 'API route not found' });
   }
+
+  // Gunakan path.resolve agar lokasi file absolut dan akurat di server Vercel
+  const loginPath = path.resolve(__dirname, '..', 'frontend', 'user', 'login.html');
+  
+  res.sendFile(loginPath, (err) => {
+    if (err) {
+      console.error("Gagal mengirim file:", err);
+      // Jika file tetap tidak ketemu, berikan pesan error teks
+      res.status(404).send("File HTML tidak ditemukan. Pastikan folder 'frontend' sudah terunggah.");
+    }
+  });
 });
 
 // ===== START SERVER =====
