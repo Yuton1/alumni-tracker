@@ -21,6 +21,7 @@ const ENDPOINTS = {
   ANTREAN: '/api/antrean',
   MASTER_ALUMNI: '/api/master-alumni',
   TRACK: '/api/track',
+  TRACKING_WORKBENCH: '/api/admin/tracking-workbench',
   
   // User Profile (Alumni)
   USER_PROFILE: '/api/user/profile-lengkap',
@@ -94,7 +95,7 @@ async function apiRequest(endpoint, options = {}) {
 function handleUnauthorized() {
   localStorage.clear();
   setTimeout(() => {
-    window.location.replace('../user/login.html');
+    window.location.replace('/login.html');
   }, 500);
 }
 
@@ -152,6 +153,14 @@ async function trackAlumni(alumniId) {
  */
 async function getMasterAlumniDetail(alumniId) {
   return await apiRequest(`${ENDPOINTS.MASTER_ALUMNI}/${alumniId}`);
+}
+
+async function getTrackingWorkbench(page = 1, limit = 10) {
+  return await apiRequest(`${ENDPOINTS.TRACKING_WORKBENCH}?page=${page}&limit=${limit}`);
+}
+
+async function getTrackingWorkbenchDetail(alumniId) {
+  return await apiRequest(`${ENDPOINTS.TRACKING_WORKBENCH}/${alumniId}`);
 }
 
 // ===== USER/ALUMNI APIs =====
@@ -265,6 +274,8 @@ if (typeof module !== 'undefined' && module.exports) {
     getMasterAlumni,
     trackAlumni,
     getMasterAlumniDetail,
+    getTrackingWorkbench,
+    getTrackingWorkbenchDetail,
     login,
     register,
     getUserProfile,

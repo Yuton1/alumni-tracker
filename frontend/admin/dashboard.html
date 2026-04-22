@@ -254,12 +254,20 @@
       cursor: pointer;
       font-weight: 600;
       transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .pagination-btn:hover:not(:disabled) {
       background: var(--blue);
       color: #fff;
       border-color: var(--blue);
+      transform: translateY(-1px);
+    }
+
+    .pagination-btn:hover:not(:disabled) i {
+      animation: nudgeX 0.45s ease-in-out infinite alternate;
     }
 
     .pagination-btn:disabled {
@@ -287,6 +295,10 @@
       border-radius: 6px;
       font-size: 0.85rem;
       transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
     }
 
     .btn-light:hover {
@@ -331,6 +343,15 @@
       to {
         transform: translateX(0);
         opacity: 1;
+      }
+    }
+
+    @keyframes nudgeX {
+      from {
+        transform: translateX(0);
+      }
+      to {
+        transform: translateX(4px);
       }
     }
 
@@ -382,6 +403,9 @@
           <p>Monitoring status pelacakan, profil target, dan validasi hasil.</p>
         </div>
         <div class="button-group">
+          <a class="btn-light" href="/admin/tracking-engine">
+            <i class="fas fa-diagram-project"></i> Tracking Engine
+          </a>
           <button class="btn-light" id="refreshBtn">
             <i class="fas fa-rotate me-2"></i> Refresh
           </button>
@@ -526,7 +550,7 @@
 
     function logout() {
       localStorage.clear();
-      window.location.replace('../user/login.html');
+      window.location.replace('/login.html');
     }
 
     async function authorizedFetch(endpoint, options = {}) {
@@ -566,7 +590,7 @@
       const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
       const role = localStorage.getItem('role');
       if (!isLoggedIn || role !== 'admin') {
-        window.location.replace('../user/login.html');
+        window.location.replace('/login.html');
         return false;
       }
       return true;

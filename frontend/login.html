@@ -223,9 +223,9 @@
         
           // Arahkan sesuai role
           if (data.role === 'admin') {
-            window.location.replace('admin/dashboard.html');
+            window.location.replace('/admin/dashboard.html');
           } else {
-            window.location.replace('user/user.html');
+            window.location.replace('/user/user.html');
           }
         } else {
           alert(data.message || 'Login gagal');

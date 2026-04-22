@@ -59,6 +59,15 @@
       font-size: 48px;
       font-weight: 700;
       box-shadow: 0 8px 16px rgba(37, 99, 235, 0.2);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .profile-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     .profile-name {
@@ -281,6 +290,52 @@
       display: flex;
       gap: 12px;
       margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    .query-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .query-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+      font-size: 0.82rem;
+      font-weight: 600;
+      word-break: break-word;
+    }
+
+    .mini-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .metric-card {
+      background: #f8fbff;
+      border: 1px solid #e0e7ff;
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .metric-card small {
+      display: block;
+      color: #64748b;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .metric-card strong {
+      color: var(--ink);
+      font-size: 1rem;
     }
 
     .btn-custom {
@@ -464,6 +519,43 @@
       </div>
     </div>
 
+    <!-- Scoring & Validation -->
+    <div class="info-section">
+      <h6><i class="fas fa-bullseye me-2"></i> Skor, Validasi, dan Query Audit</h6>
+      <div class="info-row">
+        <div class="info-label">Confidence</div>
+        <div class="info-value">
+          <div class="confidence-bar">
+            <span class="confidence-label" id="confidenceLabel">-</span>
+            <div class="confidence-track">
+              <div class="confidence-fill" id="confidenceFill" style="width: 0%;"></div>
+            </div>
+            <span class="confidence-percentage" id="confidencePercent">0%</span>
+          </div>
+          <div class="mini-metrics">
+            <div class="metric-card">
+              <small>Skor Akhir</small>
+              <strong id="confidenceScore">-</strong>
+            </div>
+            <div class="metric-card">
+              <small>Level Validasi</small>
+              <strong id="validationLevel">-</strong>
+            </div>
+            <div class="metric-card">
+              <small>Sumber Cocok</small>
+              <strong id="validationCount">0 sumber</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Query Audit</div>
+        <div class="info-value">
+          <div class="query-list" id="queryAudit"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Social Media -->
     <div class="info-section">
       <h6><i class="fas fa-share-nodes me-2"></i> Media Sosial & Kontak</h6>
@@ -511,101 +603,213 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // 1. Tangkap ID dari URL (Contoh: detailprofile.html?id=5)
     const params = new URLSearchParams(window.location.search);
     const idAlumni = params.get('id');
-    
-    // 2. Gunakan origin untuk mendukung Railway dan Localhost
-    const API_BASE = "https://nama-proyek-anda.vercel.app";
-  
+
+    const API_BASE = window.location.origin;
+    let currentInsight = null;
+
     function getToken() {
       return localStorage.getItem('token');
     }
-  
+
+    function escapeHtml(value) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      };
+      return String(value ?? '').replace(/[&<>"']/g, (match) => map[match]);
+    }
+
+    function formatDate(value) {
+      if (!value) return '-';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '-';
+      return new Intl.DateTimeFormat('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      }).format(date);
+    }
+
+    function buildInitials(name) {
+      const words = String(name || '').trim().split(/\s+/).filter(Boolean);
+      if (!words.length) return 'NA';
+      return words.slice(0, 2).map((word) => word[0]).join('').toUpperCase();
+    }
+
+    async function authorizedFetch(endpoint, options = {}) {
+      const headers = new Headers(options.headers || {});
+      const token = getToken();
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+
+      const response = await fetch(`${API_BASE}${endpoint}`, {
+        ...options,
+        headers
+      });
+
+      if (response.status === 401) {
+        alert('Sesi berakhir. Silakan login kembali.');
+        window.location.replace('/login.html');
+        return null;
+      }
+
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.message || `Gagal memuat data (${response.status})`);
+      }
+      return payload;
+    }
+
+    function renderAvatar(data) {
+      const avatar = document.getElementById('profileAvatar');
+      const photo = data.foto_profil || data.photo || '';
+
+      if (photo) {
+        avatar.innerHTML = `<img src="${escapeHtml(photo)}" alt="Foto ${escapeHtml(data.nama || 'alumni')}">`;
+        avatar.style.background = '#fff';
+        avatar.style.color = 'transparent';
+        return;
+      }
+
+      avatar.textContent = buildInitials(data.nama);
+      avatar.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+      avatar.style.color = '#fff';
+    }
+
+    function renderSocialLinks(data) {
+      const container = document.getElementById('socialLinks');
+      const links = [
+        data.linkedin_url ? { icon: 'fab fa-linkedin', label: 'LinkedIn', url: data.linkedin_url } : null,
+        data.ig_url ? { icon: 'fab fa-instagram', label: 'Instagram', url: data.ig_url } : null,
+        data.fb_url ? { icon: 'fab fa-facebook', label: 'Facebook', url: data.fb_url } : null,
+        data.tiktok_url ? { icon: 'fab fa-tiktok', label: 'TikTok', url: data.tiktok_url } : null,
+        data.email_publik ? { icon: 'fas fa-envelope', label: 'Email', url: `mailto:${data.email_publik}` } : null,
+        data.no_hp ? { icon: 'fas fa-phone', label: 'No HP', url: `tel:${data.no_hp}` } : null
+      ].filter(Boolean);
+
+      if (!links.length) {
+        container.innerHTML = '<div class="info-value empty">Belum ada data media sosial</div>';
+        return;
+      }
+
+      container.innerHTML = links.map((item) => `
+        <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" class="social-link">
+          <i class="${escapeHtml(item.icon)}"></i> ${escapeHtml(item.label)}
+        </a>
+      `).join('');
+    }
+
+    function renderQueries(queries) {
+      const container = document.getElementById('queryAudit');
+      if (!Array.isArray(queries) || !queries.length) {
+        container.innerHTML = '<span class="query-chip">Tidak ada query audit</span>';
+        return;
+      }
+
+      container.innerHTML = queries.map((query) => `<span class="query-chip">${escapeHtml(query)}</span>`).join('');
+    }
+
+    function renderEvidence(evidence) {
+      const container = document.getElementById('evidenceList');
+      if (!Array.isArray(evidence) || !evidence.length) {
+        container.innerHTML = '<div class="info-value empty">Belum ada jejak bukti</div>';
+        return;
+      }
+
+      container.innerHTML = evidence.map((item) => `
+        <div class="evidence-card">
+          <div class="evidence-header">
+            <div class="evidence-source">${escapeHtml(item.source || 'Sumber')}</div>
+            <div class="evidence-date">${escapeHtml(item.waktu || '-')}</div>
+          </div>
+          <div class="evidence-snippet">${escapeHtml(item.snippet || '-')}</div>
+          <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+            <a class="evidence-link" href="${escapeHtml(item.link || '#')}" target="_blank" rel="noopener noreferrer">
+              Buka sumber
+            </a>
+            <small class="text-muted">Skor bukti: ${escapeHtml(item.score ?? 0)}</small>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderTimeline(data) {
+      const container = document.getElementById('verificationTimeline');
+      const lastUpdate = data.last_update ? formatDate(data.last_update) : 'Belum pernah dijalankan';
+      const nextRun = data.scheduler?.next_run || '-';
+      const queueState = data.scheduler?.queue_state || '-';
+      const validationLevel = data.validation?.level || '-';
+
+      container.innerHTML = `
+        <div class="timeline-item">
+          <div class="timeline-time">${escapeHtml(lastUpdate)}</div>
+          <div class="timeline-text">Scheduler: ${escapeHtml(data.scheduler?.job_name || 'Pelacakan Alumni Publik')}</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">${escapeHtml(nextRun)}</div>
+          <div class="timeline-text">Jadwal berikutnya: ${escapeHtml(data.scheduler?.cadence || 'Mingguan')}</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">${escapeHtml(queueState)}</div>
+          <div class="timeline-text">Cross-validation: ${escapeHtml(validationLevel)}</div>
+        </div>
+      `;
+    }
+
     async function loadDataAlumni() {
       if (!idAlumni) {
         alert("ID Alumni tidak valid atau tidak ditemukan.");
         window.location.href = 'dashboard.html';
         return;
       }
-    
+
       try {
         const token = getToken();
         if (!token) {
           alert("Sesi berakhir. Silakan login kembali.");
-          window.location.href = '../user/login.html';
+          window.location.href = '/login.html';
           return;
         }
-      
-        // 3. Panggil endpoint yang SUDAH ADA di server.js kita
-        const response = await fetch(`${API_BASE}/api/master-alumni/${idAlumni}`, {
-          headers: { 
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-      
-        if (!response.ok) {
-          if (response.status === 404) throw new Error("Data alumni tidak ditemukan di database.");
-          if (response.status === 401) throw new Error("Tidak ada akses. Silakan login ulang.");
-          throw new Error("Gagal mengambil data dari server.");
-        }
-        
-        const data = await response.json();
-      
-        // --- RENDER KE TAMPILAN ---
-        
-        // 1. Header & Avatar
+
+        const data = await authorizedFetch(`/api/admin/tracking-workbench/${idAlumni}`);
+        if (!data) return;
+        currentInsight = data;
+
         document.getElementById('profileName').textContent = data.nama || 'Nama Tidak Diketahui';
         document.getElementById('profileId').textContent = '#' + data.id;
         document.getElementById('profileProdi').textContent = data.prodi || '-';
-        
-        // Ambil tahun_lulus atau tanggal_lulus
-        const tahun = data.tahun_lulus || (data.tanggal_lulus ? new Date(data.tanggal_lulus).getFullYear() : '-');
+
+        const tahun = data.tahun_lulus || '-';
         document.getElementById('profileYear').textContent = tahun;
-        
-        // Buat Inisial (Maksimal 2 huruf)
-        if (data.nama) {
-           const words = data.nama.split(' ');
-           const initials = words.length > 1 
-              ? (words + words).toUpperCase()
-              : words.toUpperCase();
-           document.getElementById('profileAvatar').textContent = initials;
-        } else {
-           document.getElementById('profileAvatar').textContent = 'NA';
-        }
-      
-        // 2. Info Akademik
+
+        renderAvatar(data);
+
         document.getElementById('academicProdi').textContent = data.prodi || '-';
         document.getElementById('academicFaculty').textContent = data.fakultas || '-';
         document.getElementById('academicYear').textContent = tahun;
         document.getElementById('academicCity').textContent = data.kota || '-';
-      
-        // 3. Info Pekerjaan (Catatan: Ini akan '-' jika masteralumni tidak di-JOIN dengan pekerjaan_alumni di server.js)
+
         document.getElementById('employmentCompany').textContent = data.nama_perusahaan || '-';
         document.getElementById('employmentPosition').textContent = data.posisi || '-';
         document.getElementById('employmentCategory').textContent = data.jenis_instansi || '-';
         document.getElementById('employmentLocation').textContent = data.alamat_kerja || '-';
-      
-        // 4. Social Media
-        const socialContainer = document.getElementById('socialLinks');
-        let socialHTML = '';
-        if (data.linkedin_url) {
-          socialHTML += `<a href="${data.linkedin_url}" target="_blank" class="social-link"><i class="fab fa-linkedin"></i> LinkedIn</a>`;
-        }
-        if (data.ig_url) {
-          socialHTML += `<a href="${data.ig_url}" target="_blank" class="social-link"><i class="fab fa-instagram"></i> Instagram</a>`;
-        }
-        if (data.fb_url) {
-          socialHTML += `<a href="${data.fb_url}" target="_blank" class="social-link"><i class="fab fa-facebook"></i> Facebook</a>`;
-        }
-        
-        socialContainer.innerHTML = socialHTML || '<div class="info-value empty">Belum ada data media sosial</div>';
-      
-        // 5. Update Status Tracking
+
+        document.getElementById('confidenceLabel').textContent = data.scoring?.label || '-';
+        document.getElementById('confidenceScore').textContent = `${data.scoring?.score ?? 0}/100`;
+        document.getElementById('confidencePercent').textContent = `${data.scoring?.score ?? 0}%`;
+        document.getElementById('confidenceFill').style.width = `${data.scoring?.score ?? 0}%`;
+        document.getElementById('validationLevel').textContent = data.validation?.level || '-';
+        document.getElementById('validationCount').textContent = `${data.validation?.count || 0} sumber`;
+
         const statusBadge = document.getElementById('statusBadge');
         const statusText = data.status_pelacakan || 'Belum Dilacak';
-        
+
         if (statusText === 'Teridentifikasi dari sumber publik') {
           statusBadge.className = 'status-badge verified';
           statusBadge.innerHTML = `<i class="fas fa-check-circle me-1"></i> ${statusText}`;
@@ -616,24 +820,42 @@
           statusBadge.className = 'status-badge unverified';
           statusBadge.innerHTML = `<i class="fas fa-question-circle me-1"></i> ${statusText}`;
         }
-      
+
+        const updateBadge = document.getElementById('updateBadge');
+        updateBadge.innerHTML = `<i class="fas fa-clock me-1"></i> Update: ${escapeHtml(formatDate(data.last_update))}`;
+
+        renderSocialLinks(data);
+        renderEvidence(data.evidence);
+        renderTimeline(data);
+        renderQueries(data.search_queries);
       } catch (error) {
         console.error("Error Detail Profil:", error);
         alert(error.message);
       }
     }
-  
-    // Placeholder functions for action buttons
+
     function triggerAutomatedSearch() {
-       alert('Fitur pencarian otomatis ulang segera hadir.');
+      if (!idAlumni) return;
+      window.location.href = `tracking-engine.html?id=${idAlumni}`;
     }
+
     function validateManually() {
-       alert('Fitur verifikasi manual segera hadir.');
+      if (!idAlumni) return;
+      authorizedFetch(`/api/track/${idAlumni}`, { method: 'POST' })
+        .then((result) => {
+          if (result) {
+            alert('Verifikasi manual selesai. Status diperbarui.');
+            loadDataAlumni();
+          }
+        })
+        .catch((error) => alert(error.message));
     }
+
     function viewFullEvidence() {
-       alert('Fitur melihat bukti lengkap segera hadir.');
+      if (!idAlumni) return;
+      window.location.href = `tracking-engine.html?id=${idAlumni}#evidence`;
     }
-  
+
     document.addEventListener('DOMContentLoaded', loadDataAlumni);
   </script>
 </body>

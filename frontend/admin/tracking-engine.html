@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tracking Engine - Alumni Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #eef4ff;
+      --surface: #ffffff;
+      --line: #d9e2f1;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --blue: #1d4ed8;
+      --cyan: #0891b2;
+      --green: #10b981;
+      --amber: #f59e0b;
+      --red: #ef4444;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top right, rgba(29, 78, 216, 0.12), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(8, 145, 178, 0.12), transparent 32%),
+        linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+      color: #1f2937;
+    }
+
+    .topbar {
+      background: linear-gradient(120deg, #0f172a, #0f4c81 55%, #0891b2);
+      color: #fff;
+      border-radius: 20px;
+      box-shadow: 0 16px 34px rgba(15, 23, 42, 0.2);
+      padding: 18px 20px;
+      margin-bottom: 24px;
+    }
+
+    .topbar h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0 0 4px;
+    }
+
+    .topbar p {
+      margin: 0;
+      opacity: 0.85;
+      font-size: 0.95rem;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-light-link,
+    .btn-light-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 0;
+      border-radius: 10px;
+      padding: 9px 14px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .btn-light-link:hover,
+    .btn-light-action:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.28);
+      transform: translateY(-1px);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px 18px 16px;
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07);
+    }
+
+    .metric-card .label {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .metric-card .value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1;
+    }
+
+    .metric-card .caption {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.9fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .panel-head h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 0;
+      color: var(--ink);
+    }
+
+    .panel-head small {
+      color: var(--muted);
+    }
+
+    .panel-body {
+      padding: 18px 20px 20px;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      margin: 0;
+    }
+
+    thead th {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #64748b;
+      background: #f8fbff;
+      border-bottom: 1px solid var(--line) !important;
+      padding: 12px !important;
+      white-space: nowrap;
+    }
+
+    tbody td {
+      vertical-align: middle;
+      padding: 12px !important;
+      border-color: #edf2fb !important;
+    }
+
+    tbody tr {
+      cursor: pointer;
+      transition: background 0.18s ease, transform 0.18s ease;
+    }
+
+    tbody tr:hover,
+    tbody tr.active-row {
+      background: #eff6ff;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .pill.success { background: rgba(16, 185, 129, 0.14); color: #059669; }
+    .pill.warning { background: rgba(245, 158, 11, 0.14); color: #d97706; }
+    .pill.info { background: rgba(8, 145, 178, 0.14); color: #0f766e; }
+    .pill.secondary { background: rgba(100, 116, 139, 0.14); color: #475569; }
+
+    .search-box {
+      min-width: 240px;
+      max-width: 360px;
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 9px 12px;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .search-box:focus {
+      border-color: rgba(29, 78, 216, 0.45);
+      box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.08);
+    }
+
+    .detail-shell {
+      display: grid;
+      gap: 16px;
+    }
+
+    .profile-card {
+      background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+      color: #fff;
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+    }
+
+    .profile-head {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .profile-avatar {
+      width: 92px;
+      height: 92px;
+      border-radius: 18px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #2563eb, #0891b2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 800;
+      flex: 0 0 auto;
+    }
+
+    .profile-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .profile-name {
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin: 0 0 4px;
+    }
+
+    .profile-meta {
+      font-size: 0.9rem;
+      opacity: 0.82;
+      margin: 0 0 12px;
+    }
+
+    .profile-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .section-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+    }
+
+    .section-card h3 {
+      font-size: 0.98rem;
+      font-weight: 800;
+      color: var(--ink);
+      margin-bottom: 14px;
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .mini-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      background: #f8fbff;
+    }
+
+    .mini-box small {
+      display: block;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .mini-box strong {
+      display: block;
+      color: var(--ink);
+      font-size: 0.95rem;
+    }
+
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: #e5eefc;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #10b981, #0891b2);
+    }
+
+    .query-list,
+    .evidence-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .query-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+      font-size: 0.82rem;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .evidence-card {
+      border: 1px solid #dbeafe;
+      background: #f8fbff;
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .evidence-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+      align-items: flex-start;
+    }
+
+    .evidence-source {
+      font-weight: 800;
+      color: var(--blue);
+      font-size: 0.85rem;
+    }
+
+    .evidence-date {
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .evidence-snippet {
+      color: #475569;
+      font-size: 0.85rem;
+      line-height: 1.45;
+      margin-bottom: 8px;
+    }
+
+    .evidence-link {
+      font-size: 0.8rem;
+      color: var(--blue);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .pagination-shell {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      flex-wrap: wrap;
+    }
+
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pagination-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--blue);
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+      transform: translateY(-1px);
+    }
+
+    .pagination-btn:hover:not(:disabled) i {
+      animation: nudgeX 0.45s ease-in-out infinite alternate;
+    }
+
+    .pagination-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .toast-shell {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1050;
+      display: grid;
+      gap: 10px;
+    }
+
+    .toast-note {
+      background: #fff;
+      border-left: 4px solid var(--blue);
+      border-radius: 10px;
+      padding: 12px 14px;
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+      animation: slideIn 0.25s ease;
+    }
+
+    .toast-note.success { border-left-color: var(--green); }
+    .toast-note.warning { border-left-color: var(--amber); }
+    .toast-note.error { border-left-color: var(--red); }
+
+    @keyframes slideIn {
+      from { transform: translateX(26px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes nudgeX {
+      from { transform: translateX(0); }
+      to { transform: translateX(4px); }
+    }
+
+    @media (max-width: 992px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .topbar {
+        padding: 16px;
+      }
+
+      .topbar h1 {
+        font-size: 1.3rem;
+      }
+
+      .profile-head {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .mini-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-head {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .search-box {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <section class="topbar">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div>
+          <h1>Tracking Engine</h1>
+          <p>Scheduler, scoring, cross-validation, dan jejak bukti alumni.</p>
+        </div>
+        <div class="button-group">
+          <a class="btn-light-link" href="/admin/dashboard.html">
+            <i class="fas fa-arrow-left"></i> Dashboard
+          </a>
+          <button class="btn-light-action" id="refreshBtn">
+            <i class="fas fa-rotate"></i> Refresh
+          </button>
+          <button class="btn-light-action" id="logoutBtn">
+            <i class="fas fa-right-from-bracket"></i> Logout
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div class="hero-grid">
+      <div class="metric-card">
+        <div class="label">Scheduler</div>
+        <div class="value" id="schedulerState">-</div>
+        <div class="caption" id="schedulerCaption">Memuat jadwal pelacakan...</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Confidence Tinggi</div>
+        <div class="value" id="highCount">0</div>
+        <div class="caption">Kemungkinan kuat</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Perlu Verifikasi</div>
+        <div class="value" id="mediumCount">0</div>
+        <div class="caption">Masih menunggu konfirmasi</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Tidak Cocok</div>
+        <div class="value" id="lowCount">0</div>
+        <div class="caption">Bukti belum memadai</div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Daftar Kandidat Pelacakan</h2>
+            <small>Pagination dibatasi 10 data per halaman agar ringan.</small>
+          </div>
+          <input type="text" id="searchInput" class="search-box" placeholder="Cari nama, prodi, kota...">
+        </div>
+        <div class="panel-body">
+          <div class="table-wrap">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th style="width: 68px;">ID</th>
+                  <th>Nama</th>
+                  <th>Confidence</th>
+                  <th>Validasi</th>
+                  <th>Status</th>
+                  <th style="width: 140px;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody">
+                <tr>
+                  <td colspan="6" class="text-center py-4 text-muted">
+                    <i class="fas fa-spinner fa-spin me-2"></i> Memuat data...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination-shell">
+            <div class="text-muted small" id="resultInfo">0 data</div>
+            <div class="pagination-controls">
+              <button class="pagination-btn" id="prevBtn" disabled>
+                <i class="fas fa-chevron-left"></i> Sebelumnya
+              </button>
+              <span class="fw-semibold text-secondary" id="pageLabel">Halaman 1</span>
+              <button class="pagination-btn" id="nextBtn" disabled>
+                Selanjutnya <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="detail-shell">
+        <section class="profile-card">
+          <div class="profile-head">
+            <div class="profile-avatar" id="avatarBox">NA</div>
+            <div>
+              <h2 class="profile-name" id="detailName">Pilih kandidat</h2>
+              <p class="profile-meta" id="detailMeta">Detail tracking akan tampil di sini.</p>
+              <div class="profile-tags" id="detailTags">
+                <span class="tag"><i class="fas fa-diagram-project"></i> Scheduler</span>
+                <span class="tag"><i class="fas fa-list-check"></i> Scoring</span>
+                <span class="tag"><i class="fas fa-shield-halved"></i> Evidence</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section-card">
+          <h3>Ringkasan Skor</h3>
+          <div class="mini-grid">
+            <div class="mini-box">
+              <small>Score</small>
+              <strong id="detailScore">-</strong>
+            </div>
+            <div class="mini-box">
+              <small>Level</small>
+              <strong id="detailLevel">-</strong>
+            </div>
+            <div class="mini-box">
+              <small>Validasi</small>
+              <strong id="detailValidation">-</strong>
+            </div>
+            <div class="mini-box">
+              <small>Jadwal</small>
+              <strong id="detailScheduler">-</strong>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <small class="text-secondary fw-semibold">Confidence bar</small>
+              <small class="fw-bold text-secondary" id="detailPercent">0%</small>
+            </div>
+            <div class="bar">
+              <div class="bar-fill" id="detailBar" style="width: 0%;"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section-card">
+          <h3>Query Audit</h3>
+          <div class="query-list" id="queryList"></div>
+        </section>
+
+        <section class="section-card" id="evidenceSection">
+          <h3>Jejak Bukti</h3>
+          <div class="evidence-list" id="evidenceList"></div>
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <div class="toast-shell" id="toastShell"></div>
+
+  <script>
+    const API_BASE = window.location.origin;
+    const state = {
+      page: 1,
+      totalPages: 1,
+      total: 0,
+      items: [],
+      selectedId: null,
+      searchQuery: '',
+      cachedDetail: null
+    };
+
+    const initialId = new URLSearchParams(window.location.search).get('id');
+
+    function getToken() {
+      return localStorage.getItem('token');
+    }
+
+    function escapeHtml(value) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      };
+      return String(value ?? '').replace(/[&<>"']/g, (match) => map[match]);
+    }
+
+    function showToast(message, type = 'info') {
+      const toastShell = document.getElementById('toastShell');
+      const el = document.createElement('div');
+      el.className = `toast-note ${type}`;
+      el.textContent = message;
+      toastShell.appendChild(el);
+      setTimeout(() => el.remove(), 2600);
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.replace('/login.html');
+    }
+
+    function requireAdminAccess() {
+      const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+      const role = localStorage.getItem('role');
+      if (!loggedIn || role !== 'admin') {
+        window.location.replace('/login.html');
+        return false;
+      }
+      return true;
+    }
+
+    async function authorizedFetch(endpoint, options = {}) {
+      const headers = new Headers(options.headers || {});
+      const token = getToken();
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+
+      const response = await fetch(`${API_BASE}${endpoint}`, {
+        ...options,
+        headers
+      });
+
+      if (response.status === 401) {
+        showToast('Sesi berakhir. Silakan login ulang.', 'warning');
+        setTimeout(logout, 800);
+        return null;
+      }
+
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.message || `Gagal memuat data (${response.status})`);
+      }
+      return payload;
+    }
+
+    function statusPill(label, type) {
+      return `<span class="pill ${type}">${escapeHtml(label)}</span>`;
+    }
+
+    function renderMetrics(summary) {
+      document.getElementById('schedulerState').textContent = summary?.scheduler?.status || '-';
+      document.getElementById('schedulerCaption').textContent = summary?.scheduler ? `${summary.scheduler.name} | ${summary.scheduler.cadence}` : 'Belum ada data';
+      document.getElementById('highCount').textContent = summary?.counts?.tinggi ?? 0;
+      document.getElementById('mediumCount').textContent = summary?.counts?.sedang ?? 0;
+      document.getElementById('lowCount').textContent = summary?.counts?.rendah ?? 0;
+    }
+
+    function matchesSearch(item) {
+      const query = state.searchQuery.trim().toLowerCase();
+      if (!query) return true;
+      return `${item.nama || ''} ${item.prodi || ''} ${item.kota || ''}`.toLowerCase().includes(query);
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('tableBody');
+      const filtered = state.items.filter(matchesSearch);
+
+      document.getElementById('resultInfo').textContent = `${filtered.length} data pada halaman ini`;
+      document.getElementById('pageLabel').textContent = `Halaman ${state.page} dari ${state.totalPages}`;
+      document.getElementById('prevBtn').disabled = state.page <= 1;
+      document.getElementById('nextBtn').disabled = state.page >= state.totalPages;
+
+      if (!filtered.length) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center py-4 text-muted">
+              <i class="fas fa-search me-2"></i> Data tidak ditemukan
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((item) => {
+        const activeClass = String(item.id) === String(state.selectedId) ? 'active-row' : '';
+        const percent = item.scoring?.score ?? 0;
+        const validation = item.validation?.level || '-';
+        return `
+          <tr class="${activeClass}" data-id="${escapeHtml(item.id)}">
+            <td>#${escapeHtml(item.id)}</td>
+            <td>
+              <div class="fw-bold">${escapeHtml(item.nama || '-')}</div>
+              <small class="text-secondary">${escapeHtml(item.prodi || '-')}${item.kota ? ` • ${escapeHtml(item.kota)}` : ''}</small>
+            </td>
+            <td>
+              <div class="fw-bold">${escapeHtml(percent)}%</div>
+              <small class="text-secondary">${escapeHtml(item.scoring?.label || '-')}</small>
+            </td>
+            <td>${statusPill(validation, validation.includes('Lulus') ? 'success' : validation.includes('verifikasi') ? 'warning' : 'secondary')}</td>
+            <td>${statusPill(item.status_pelacakan || 'Belum Dilacak', item.status_pelacakan === 'Teridentifikasi dari sumber publik' ? 'success' : item.status_pelacakan === 'Perlu Verifikasi Manual' ? 'warning' : 'secondary')}</td>
+            <td><button class="btn btn-sm btn-outline-primary" data-open="${escapeHtml(item.id)}">Detail</button></td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.querySelectorAll('[data-id]').forEach((row) => {
+        row.addEventListener('click', () => selectItem(row.dataset.id));
+      });
+      tbody.querySelectorAll('[data-open]').forEach((button) => {
+        button.addEventListener('click', (event) => {
+          event.stopPropagation();
+          selectItem(button.dataset.open);
+        });
+      });
+    }
+
+    function renderDetail(detail) {
+      if (!detail) return;
+
+      state.cachedDetail = detail;
+      const avatar = document.getElementById('avatarBox');
+      const photo = detail.foto_profil || '';
+      if (photo) {
+        avatar.innerHTML = `<img src="${escapeHtml(photo)}" alt="Foto ${escapeHtml(detail.nama || 'alumni')}">`;
+      } else {
+        avatar.textContent = String(detail.nama || 'NA').trim().split(/\s+/).slice(0, 2).map((word) => word[0] || '').join('').toUpperCase() || 'NA';
+      }
+
+      document.getElementById('detailName').textContent = detail.nama || 'Nama tidak diketahui';
+      document.getElementById('detailMeta').textContent = `${detail.prodi || '-'} • ${detail.fakultas || '-'} • ${detail.kota || '-'} • Lulus ${detail.tahun_lulus || '-'}`;
+      document.getElementById('detailScore').textContent = `${detail.scoring?.score ?? 0}/100`;
+      document.getElementById('detailLevel').textContent = detail.scoring?.label || '-';
+      document.getElementById('detailValidation').textContent = detail.validation?.level || '-';
+      document.getElementById('detailScheduler').textContent = detail.scheduler?.queue_state || '-';
+      document.getElementById('detailPercent').textContent = `${detail.scoring?.score ?? 0}%`;
+      document.getElementById('detailBar').style.width = `${detail.scoring?.score ?? 0}%`;
+
+      const queries = Array.isArray(detail.search_queries) && detail.search_queries.length
+        ? detail.search_queries
+        : ['Belum ada query audit'];
+      document.getElementById('queryList').innerHTML = queries.map((query) => `<span class="query-chip">${escapeHtml(query)}</span>`).join('');
+
+      const evidence = Array.isArray(detail.evidence) && detail.evidence.length
+        ? detail.evidence
+        : [{
+            source: 'Belum ada bukti',
+            waktu: '-',
+            snippet: 'Data bukti belum tersedia pada kandidat ini.',
+            link: '#',
+            score: 0
+          }];
+
+      document.getElementById('evidenceList').innerHTML = evidence.map((item) => `
+        <div class="evidence-card">
+          <div class="evidence-head">
+            <div class="evidence-source">${escapeHtml(item.source || 'Sumber')}</div>
+            <div class="evidence-date">${escapeHtml(item.waktu || '-')}</div>
+          </div>
+          <div class="evidence-snippet">${escapeHtml(item.snippet || '-')}</div>
+          <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+            <a class="evidence-link" href="${escapeHtml(item.link || '#')}" target="_blank" rel="noopener noreferrer">Buka sumber</a>
+            <small class="text-secondary">Skor bukti: ${escapeHtml(item.score ?? 0)}</small>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function loadPage(page = 1) {
+      showToast('Memuat tracking workbench...', 'info');
+      const payload = await authorizedFetch(`/api/admin/tracking-workbench?page=${page}&limit=10`);
+      if (!payload) return;
+
+      state.page = payload.summary?.page || page;
+      state.totalPages = payload.summary?.totalPages || 1;
+      state.total = payload.summary?.total || 0;
+      state.items = Array.isArray(payload.items) ? payload.items : [];
+      renderMetrics(payload.summary);
+      renderTable();
+
+      if (state.selectedId) {
+        const found = state.items.find((item) => String(item.id) === String(state.selectedId));
+        if (found) {
+          renderDetail(found);
+        }
+      } else if (state.items[0]) {
+        state.selectedId = state.items[0].id;
+        renderDetail(state.items[0]);
+      }
+
+      document.getElementById('resultInfo').textContent = `${state.total} kandidat tersusun`;
+    }
+
+    async function selectItem(id) {
+      state.selectedId = id;
+      const local = state.items.find((item) => String(item.id) === String(id));
+      if (local) {
+        renderDetail(local);
+        renderTable();
+        return;
+      }
+
+      const detail = await authorizedFetch(`/api/admin/tracking-workbench/${id}`);
+      if (detail) {
+        renderDetail(detail);
+        renderTable();
+      }
+    }
+
+    function bindEvents() {
+      document.getElementById('refreshBtn').addEventListener('click', () => loadPage(state.page));
+      document.getElementById('logoutBtn').addEventListener('click', logout);
+      document.getElementById('searchInput').addEventListener('input', (event) => {
+        state.searchQuery = event.target.value;
+        renderTable();
+      });
+      document.getElementById('prevBtn').addEventListener('click', () => {
+        if (state.page > 1) {
+          loadPage(state.page - 1);
+        }
+      });
+      document.getElementById('nextBtn').addEventListener('click', () => {
+        if (state.page < state.totalPages) {
+          loadPage(state.page + 1);
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!requireAdminAccess()) return;
+      bindEvents();
+      await loadPage(1);
+
+      if (initialId) {
+        selectItem(initialId);
+      }
+    });
+  </script>
+</body>
+</html>

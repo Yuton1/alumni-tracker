@@ -155,6 +155,214 @@ function normalizeFotoProfilPath(rawPath) {
   return `/uploads/${value}`;
 }
 
+function formatDisplayDate(value) {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return new Intl.DateTimeFormat('id-ID', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  }).format(date);
+}
+
+function generateSearchQueries(alumni) {
+  const nama = alumni.nama || '';
+  const prodi = alumni.prodi || '';
+  const fakultas = alumni.fakultas || '';
+  const kota = alumni.kota || '';
+  const tahun = alumni.tahun_lulus ? String(alumni.tahun_lulus) : '';
+  const variasi = Array.isArray(alumni.nama_variasi) ? alumni.nama_variasi : [nama];
+
+  return Array.from(new Set([
+    `"${nama}" "${prodi}"`,
+    `"${nama}" "${fakultas}"`,
+    `"${nama}" "${kota}"`,
+    `"${nama}" "${tahun}"`,
+    `"${nama}" site:linkedin.com/in`,
+    `"${nama}" site:scholar.google.com`,
+    `"${nama}" site:orcid.org`,
+    `"${nama}" site:researchgate.net`,
+    `"${nama}" site:instagram.com`,
+    `"${nama}" site:facebook.com`,
+    ...variasi.map((variasiNama) => `"${variasiNama}" "${prodi}"`)
+  ].filter(Boolean)));
+}
+
+function collapseTrackingRows(rows) {
+  const byId = new Map();
+
+  rows.forEach((row) => {
+    const existing = byId.get(row.id);
+    if (!existing) {
+      byId.set(row.id, { ...row });
+      return;
+    }
+
+    const existingWorkId = Number(existing.pekerjaan_id || 0);
+    const nextWorkId = Number(row.pekerjaan_id || 0);
+    if (nextWorkId >= existingWorkId) {
+      byId.set(row.id, { ...existing, ...row });
+    }
+  });
+
+  return Array.from(byId.values());
+}
+
+function buildTrackingWorkbenchItem(row) {
+  const profile = createProfiling(row);
+  const socialSources = [
+    row.linkedin_url ? { label: 'LinkedIn', url: row.linkedin_url } : null,
+    row.ig_url ? { label: 'Instagram', url: row.ig_url } : null,
+    row.fb_url ? { label: 'Facebook', url: row.fb_url } : null,
+    row.tiktok_url ? { label: 'TikTok', url: row.tiktok_url } : null
+  ].filter(Boolean);
+
+  const validationSources = [
+    'Master Alumni',
+    row.nama_perusahaan ? 'Pekerjaan' : null,
+    ...socialSources.map((source) => source.label),
+    row.email_publik ? 'Email Publik' : null,
+    row.no_hp ? 'No HP' : null
+  ].filter(Boolean);
+
+  const scoreParts = [
+    row.nama ? 14 : 0,
+    row.prodi ? 8 : 0,
+    row.fakultas ? 6 : 0,
+    row.kota ? 8 : 0,
+    row.tahun_lulus ? 8 : 0,
+    row.nama_perusahaan ? 16 : 0,
+    row.posisi ? 10 : 0,
+    row.jenis_instansi ? 6 : 0,
+    row.alamat_kerja ? 6 : 0,
+    row.email_publik ? 5 : 0,
+    row.no_hp ? 5 : 0,
+    socialSources.length * 4,
+    row.status_pelacakan === 'Teridentifikasi dari sumber publik' ? 8 : 0
+  ];
+
+  const confidenceScore = Math.min(98, scoreParts.reduce((sum, value) => sum + value, 0));
+  const confidenceLabel = confidenceScore >= 75 ? 'Tinggi' : confidenceScore >= 45 ? 'Sedang' : 'Rendah';
+  const validationLevel = validationSources.length >= 4 ? 'Lulus cross-validation' : validationSources.length >= 2 ? 'Perlu verifikasi manual' : 'Belum cukup bukti';
+
+  const evidence = [
+    {
+      source: 'Master Alumni',
+      title: `Profil ${row.nama || 'alumni'}`,
+      snippet: `${row.prodi || '-'} | ${row.fakultas || '-'} | ${row.kota || '-'} | Lulus ${row.tahun_lulus || '-'}`,
+      link: `/admin/detailprofile.html?id=${row.id}`,
+      waktu: formatDisplayDate(row.last_update || new Date()),
+      score: 20
+    },
+    row.nama_perusahaan ? {
+      source: 'Pekerjaan Terbaru',
+      title: row.nama_perusahaan,
+      snippet: `${row.posisi || '-'} di ${row.nama_perusahaan}. ${row.jenis_instansi || '-'} | ${row.alamat_kerja || '-'}`,
+      link: `/admin/detailprofile.html?id=${row.id}`,
+      waktu: formatDisplayDate(row.last_update || new Date()),
+      score: 18
+    } : null,
+    row.linkedin_url ? {
+      source: 'LinkedIn',
+      title: 'Tautan LinkedIn terdeteksi',
+      snippet: row.linkedin_url,
+      link: row.linkedin_url,
+      waktu: formatDisplayDate(row.last_update || new Date()),
+      score: 16
+    } : null,
+    row.ig_url ? {
+      source: 'Instagram',
+      title: 'Tautan Instagram terdeteksi',
+      snippet: row.ig_url,
+      link: row.ig_url,
+      waktu: formatDisplayDate(row.last_update || new Date()),
+      score: 12
+    } : null,
+    row.fb_url ? {
+      source: 'Facebook',
+      title: 'Tautan Facebook terdeteksi',
+      snippet: row.fb_url,
+      link: row.fb_url,
+      waktu: formatDisplayDate(row.last_update || new Date()),
+      score: 12
+    } : null,
+    row.tiktok_url ? {
+      source: 'TikTok',
+      title: 'Tautan TikTok terdeteksi',
+      snippet: row.tiktok_url,
+      link: row.tiktok_url,
+      waktu: formatDisplayDate(row.last_update || new Date()),
+      score: 12
+    } : null
+  ].filter(Boolean);
+
+  const statusPelacakan = row.status_pelacakan || 'Belum Dilacak';
+  const nextRun = new Date();
+  nextRun.setDate(nextRun.getDate() + 7);
+
+  return {
+    ...profile,
+    foto_profil: normalizeFotoProfilPath(row.foto_profil),
+    status_pelacakan: statusPelacakan,
+    hasil_kandidat: row.hasil_kandidat || (row.nama_perusahaan ? `${row.posisi || 'Profesional'} di ${row.nama_perusahaan}` : 'Belum ada hasil kandidat'),
+    last_update: row.last_update || null,
+    scheduler: {
+      job_name: 'Pelacakan Alumni Publik',
+      cadence: 'Mingguan',
+      last_run: row.last_update ? formatDisplayDate(row.last_update) : 'Belum pernah dijalankan',
+      next_run: formatDisplayDate(nextRun),
+      queue_state: statusPelacakan === 'Belum Dilacak' ? 'Siap diproses' : 'Perlu pembaruan berkala'
+    },
+    scoring: {
+      score: confidenceScore,
+      label: confidenceLabel,
+      category: confidenceScore >= 75 ? 'Kemungkinan kuat' : confidenceScore >= 45 ? 'Perlu verifikasi' : 'Tidak cocok'
+    },
+    validation: {
+      sources: validationSources,
+      count: validationSources.length,
+      level: validationLevel
+    },
+    search_queries: generateSearchQueries(profile),
+    evidence
+  };
+}
+
+function respondWithTrackingWorkbench(req, res, rows) {
+  const page = Math.max(Number.parseInt(req.query.page || '1', 10) || 1, 1);
+  const limitRaw = Number.parseInt(req.query.limit || '10', 10) || 10;
+  const limit = Math.min(Math.max(limitRaw, 1), 10);
+  const items = collapseTrackingRows(rows).map(buildTrackingWorkbenchItem);
+  const total = items.length;
+  const totalPages = Math.max(Math.ceil(total / limit), 1);
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * limit;
+  const pagedItems = items.slice(start, start + limit);
+
+  const summary = {
+    total,
+    totalPages,
+    page: safePage,
+    limit,
+    scheduler: {
+      name: 'Pelacakan Alumni Publik',
+      status: total ? 'Aktif' : 'Menunggu data',
+      cadence: 'Mingguan'
+    },
+    counts: {
+      tinggi: items.filter((item) => item.scoring.score >= 75).length,
+      sedang: items.filter((item) => item.scoring.score >= 45 && item.scoring.score < 75).length,
+      rendah: items.filter((item) => item.scoring.score < 45).length
+    }
+  };
+
+  res.json({
+    summary,
+    items: pagedItems
+  });
+}
+
 // ===== AUTH ENDPOINTS =====
 
 app.post('/api/login', (req, res) => {
@@ -279,13 +487,20 @@ app.get('/api/master-alumni/:id', authenticateToken, (req, res) => {
       m.kota,
       m.tahun_lulus,
       COALESCE(t.status_pelacakan, 'Belum Dilacak') AS status_pelacakan,
+      COALESCE(t.hasil_kandidat, '') AS hasil_kandidat,
+      t.last_update,
+      u.foto_profil,
       p.nama_perusahaan, 
       p.posisi, 
       p.jenis_instansi, 
       p.alamat_kerja,
+      p.email_publik,
+      p.no_hp,
       p.linkedin_url,
       p.ig_url,
-      p.fb_url
+      p.fb_url,
+      p.tiktok_url,
+      p.sosmed_kantor
     FROM masteralumni m 
     LEFT JOIN alumnitracking t ON m.id = t.id 
     LEFT JOIN users u ON m.id = u.alumni_id
@@ -304,7 +519,10 @@ app.get('/api/master-alumni/:id', authenticateToken, (req, res) => {
     }
 
     console.log("Data yang dikirim ke Frontend:", results);
-    res.json(results); 
+    res.json(results.map((row) => ({
+      ...row,
+      foto_profil: normalizeFotoProfilPath(row.foto_profil)
+    }))); 
   });
 });
 
@@ -334,6 +552,107 @@ app.post('/api/track/:id', (req, res) => {
   db.query(sql, [id, status, hasilKandidat, today, status, hasilKandidat, today], (err) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ success: true, status });
+  });
+});
+
+app.get('/api/admin/tracking-workbench', authenticateToken, (req, res) => {
+  if (req.user?.role !== 'admin') {
+    return res.status(403).json({ message: 'Akses admin ditolak' });
+  }
+
+  const sql = `
+    SELECT
+      m.id,
+      m.nama,
+      m.prodi,
+      m.fakultas,
+      m.kota,
+      m.tahun_lulus,
+      u.foto_profil,
+      p.id AS pekerjaan_id,
+      p.nama_perusahaan,
+      p.posisi,
+      p.jenis_instansi,
+      p.alamat_kerja,
+      p.email_publik,
+      p.no_hp,
+      p.linkedin_url,
+      p.ig_url,
+      p.fb_url,
+      p.tiktok_url,
+      p.sosmed_kantor,
+      COALESCE(t.status_pelacakan, 'Belum Dilacak') AS status_pelacakan,
+      COALESCE(t.hasil_kandidat, '') AS hasil_kandidat,
+      t.last_update
+    FROM masteralumni m
+    LEFT JOIN alumnitracking t ON m.id = t.id
+    LEFT JOIN users u ON m.id = u.alumni_id
+    LEFT JOIN pekerjaan_alumni p ON u.id = p.user_id
+    ORDER BY m.id ASC, p.id DESC
+  `;
+
+  db.query(sql, (err, rows) => {
+    if (err) {
+      return res.status(500).json({ message: 'Gagal memuat tracking workbench', error: err.message });
+    }
+
+    return respondWithTrackingWorkbench(req, res, rows);
+  });
+});
+
+app.get('/api/admin/tracking-workbench/:id', authenticateToken, (req, res) => {
+  if (req.user?.role !== 'admin') {
+    return res.status(403).json({ message: 'Akses admin ditolak' });
+  }
+
+  const id = Number.parseInt(req.params.id, 10);
+  if (Number.isNaN(id) || id <= 0) {
+    return res.status(400).json({ message: 'ID alumni tidak valid' });
+  }
+
+  const sql = `
+    SELECT
+      m.id,
+      m.nama,
+      m.prodi,
+      m.fakultas,
+      m.kota,
+      m.tahun_lulus,
+      u.foto_profil,
+      p.id AS pekerjaan_id,
+      p.nama_perusahaan,
+      p.posisi,
+      p.jenis_instansi,
+      p.alamat_kerja,
+      p.email_publik,
+      p.no_hp,
+      p.linkedin_url,
+      p.ig_url,
+      p.fb_url,
+      p.tiktok_url,
+      p.sosmed_kantor,
+      COALESCE(t.status_pelacakan, 'Belum Dilacak') AS status_pelacakan,
+      COALESCE(t.hasil_kandidat, '') AS hasil_kandidat,
+      t.last_update
+    FROM masteralumni m
+    LEFT JOIN alumnitracking t ON m.id = t.id
+    LEFT JOIN users u ON m.id = u.alumni_id
+    LEFT JOIN pekerjaan_alumni p ON u.id = p.user_id
+    WHERE m.id = ?
+    ORDER BY p.id DESC
+  `;
+
+  db.query(sql, [id], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ message: 'Gagal memuat detail tracking', error: err.message });
+    }
+
+    if (!rows.length) {
+      return res.status(404).json({ message: 'Alumni tidak ditemukan' });
+    }
+
+    const [latest] = collapseTrackingRows(rows);
+    return res.json(buildTrackingWorkbenchItem(latest));
   });
 });
 
@@ -587,6 +906,14 @@ const frontendPath = path.resolve(process.cwd(), 'frontend');
 app.use(express.static(frontendPath));
 
 // 3. Rute manual untuk halaman utama aplikasi kamu
+app.get('/', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'login.html'));
+});
+
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'login.html'));
+});
+
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(frontendPath, 'admin/dashboard.html'));
 });
@@ -595,8 +922,16 @@ app.get('/admin/dashboard', (req, res) => {
   res.sendFile(path.join(frontendPath, 'admin/dashboard.html'));
 });
 
+app.get('/admin/tracking-engine', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'admin/tracking-engine.html'));
+});
+
+app.get('/admin/detailprofile', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'admin/detailprofile.html'));
+});
+
 app.get('/register', (req, res) => {
-  res.sendFile(path.join(frontendPath, 'user/register.html'));
+  res.sendFile(path.join(frontendPath, 'register.html'));
 });
 
 app.get('/user', (req, res) => {
@@ -606,24 +941,6 @@ app.get('/user', (req, res) => {
 app.get('/user/profile', (req, res) => {
   // Pastikan 'Profile' menggunakan P besar jika foldermu memang "Profile"
   res.sendFile(path.join(frontendPath, 'user/Profile/akademik.html'));
-});
-
-// 4. Rute Sapu Jagat (CATCH-ALL) - SOLUSI UNTUK ERROR LOG KAMU
-// Ganti rute yang menyebabkan error (/:path((.*))) menjadi '*' saja
-app.get('/:path*', (req, res) => {
-  // Cegah request API yang salah agar tidak mengirim file HTML
-  if (req.path.startsWith('/api')) {
-    return res.status(404).json({ error: 'API route not found' });
-  }
-
-  const loginPath = path.join(frontendPath, 'user/login.html');
-  
-  res.sendFile(loginPath, (err) => {
-    if (err) {
-      console.error("Gagal mengirim file login:", err.message);
-      res.status(404).send(`Halaman tidak ditemukan. Sistem mencari di: ${loginPath}`);
-    }
-  });
 });
 
 // ===== START SERVER =====
