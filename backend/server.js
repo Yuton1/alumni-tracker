@@ -605,19 +605,20 @@ app.get('/user/profile', (req, res) => {
 });
 
 // Default route
-app.get('*', (req, res) => {
-  // Abaikan jika ini adalah request API yang salah alamat
+// Gunakan syntax (.*) untuk menangkap semua rute, ini lebih aman di versi Express terbaru
+app.get('/:path((.*))', (req, res) => {
+  // Abaikan request ke API yang salah
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ error: 'API route not found' });
   }
 
-  // Arahkan semua akses halaman ke login.html menggunakan path absolut
+  // Path absolut menggunakan process.cwd()
   const loginPath = path.join(process.cwd(), 'frontend', 'user', 'login.html');
   
   res.sendFile(loginPath, (err) => {
     if (err) {
       console.error("Gagal mengirim file:", err.message);
-      res.status(404).send(`File tidak ditemukan di sistem Vercel. Jalur: ${loginPath}`);
+      res.status(404).send("File HTML tidak ditemukan di server Vercel.");
     }
   });
 });
