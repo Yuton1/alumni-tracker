@@ -302,7 +302,7 @@
           const node = document.getElementById(id);
           if (node) node.textContent = value;
         });
-        
+
         const userId = getUserId();
         authorizedFetch(`/api/user/rekap-pekerjaan?id=${userId}&t=${Date.now()}`)
           .then(rows => {
@@ -444,13 +444,17 @@
           return `
             <tr>
               <td class="px-4 py-3">${i + 1}</td>
-              <td class=>${isiTahun}</td>
-              <td class=>${isiNamaPT}</td>
+              <td>${isiTahun}</td>
+              <td>${isiNamaPT}</td>
               <td>${isiPosisi}</td>
               <td><span class="badge bg-light text-dark border">${isiJenis}</span></td>
               <td class="text-center">
-                <button class="btn btn-sm btn-outline-primary me-1" data-action="edit" data-id="${item.id}"><i class="fas fa-pen"></i></button>
-                <button class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${item.id}"><i class="fas fa-trash"></i></button>
+                <button class="btn btn-sm btn-outline-primary me-1" data-action="edit" data-id="${item.id}">
+                  <i class="fas fa-pen"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${item.id}">
+                  <i class="fas fa-trash"></i>
+                </button>
               </td>
             </tr>
           `;
