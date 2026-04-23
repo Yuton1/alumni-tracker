@@ -748,16 +748,15 @@ app.post('/api/user/tambah-pekerjaan', (req, res) => {
     return res.status(401).json({ success: false, message: 'User tidak valid. Login ulang diperlukan.' });
   }
 
-  const payload = normalizePekerjaanPayload(req.body);
-
-  const insertSql = `INSERT INTO pekerjaan_alumni
-                    (user_id, nama_perusahaan, posisi, jenis_instansi, alamat_kerja, email_publik, no_hp, linkedin_url, ig_url, fb_url, tiktok_url, sosmed_kantor)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-
+  const insertSql = `INSERT INTO pekerjaan_alumni 
+                     (user_id, nama_perusahaan, posisi, tahun_mulai, jenis_instansi, alamat_kerja, email_publik, no_hp, linkedin_url, ig_url, fb_url, tiktok_url, sosmed_kantor) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  
   const insertValues = [
     userId,
     payload.nama_perusahaan,
     payload.posisi,
+    payload.tahun_mulai, // TAMBAHKAN INI (Pastikan urutannya sesuai dengan kolom di atas)
     payload.jenis_instansi,
     payload.alamat_kerja,
     payload.email_publik,
