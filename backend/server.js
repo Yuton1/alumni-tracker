@@ -132,6 +132,7 @@ function normalizePekerjaanPayload(payload = {}) {
   return {
     nama_perusahaan: (payload.nama_perusahaan || '').trim(),
     posisi: (payload.posisi || '').trim(),
+    tahun_mulai: body.tahun_mulai || null,
     jenis_instansi: (payload.jenis_instansi || '').trim(),
     alamat_kerja: (payload.alamat_kerja || '').trim(),
     email_publik: (payload.email_publik || '').trim(),
@@ -751,7 +752,7 @@ app.post('/api/user/tambah-pekerjaan', (req, res) => {
   const insertSql = `INSERT INTO pekerjaan_alumni 
                      (user_id, nama_perusahaan, posisi, tahun_mulai, jenis_instansi, alamat_kerja, email_publik, no_hp, linkedin_url, ig_url, fb_url, tiktok_url, sosmed_kantor) 
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-  
+
   const insertValues = [
     userId,
     payload.nama_perusahaan,
@@ -780,6 +781,7 @@ app.post('/api/user/tambah-pekerjaan', (req, res) => {
     const updateSql = `UPDATE pekerjaan_alumni
                       SET nama_perusahaan = ?,
                           posisi = ?,
+                          tahun_mulai = ?,
                           jenis_instansi = ?,
                           alamat_kerja = ?,
                           email_publik = ?,
