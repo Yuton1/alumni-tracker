@@ -359,18 +359,18 @@
         body.innerHTML = state.rekap.map((item, i) => {
           console.log("Cek Row:", item);
           // 1. Definisikan variabel dengan nama yang jelas
-          const tahunData = item.tahun_mulai ? String(item.tahun_mulai).substring(0, 4) : '-';
-          const perusahaanData = item.nama_perusahaan || '-';
-          const posisiData = item.posisi || '-';
-          const kategoriData = item.jenis_instansi || '-';
+          const tahunFix = item.tahun_mulai ? String(item.tahun_mulai).substring(0, 4) : '-';
+          const perusahaanFix = item.nama_perusahaan || '-';
+          const posisiFix = item.posisi || '-';
+          const kategoriFix = item.jenis_instansi || '-';
                 
           return `
             <tr>
               <td class="px-4 py-3">${i + 1}</td>
-              <td class="fw-bold text-primary">${tahunTampil}</td>
-              <td class="fw-bold text-dark">${namaPT}</td>
-              <td>${posisiKerja}</td>
-              <td><span class="badge bg-light text-dark border">${jenisInstansi}</span></td>
+              <td class="fw-bold text-primary">${tahunFix}</td>
+              <td class="fw-bold text-dark">${perusahaanFix}</td>
+              <td>${posisiFix}</td>
+              <td><span class="badge bg-light text-dark border">${kategoriFix}</span></td>
               <td class="text-center">
                 <button class="btn btn-sm btn-outline-primary me-1" data-action="edit" data-id="${item.id}"><i class="fas fa-pen"></i></button>
                 <button class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${item.id}"><i class="fas fa-trash"></i></button>
