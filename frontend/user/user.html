@@ -357,11 +357,8 @@
         }
 
         body.innerHTML = state.rekap.map((item, i) => {
-          // Logika pembersihan tahun agar tidak muncul "-" jika data ada
           let displayTahun = '-';
           if (item.tahun_mulai) {
-            // Jika formatnya full date (2023-01-01), ambil 4 angka depan. 
-            // Jika sudah 2023, tampilkan langsung.
             displayTahun = String(item.tahun_mulai).substring(0, 4);
           }
 

@@ -702,6 +702,7 @@ app.get('/api/user/rekap-pekerjaan', (req, res) => {
 
   const sql = `SELECT
                  id,
+                 tahun_mulai
                  nama_perusahaan,
                  posisi,
                  jenis_instansi,
