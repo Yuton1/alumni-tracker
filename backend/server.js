@@ -132,7 +132,7 @@ function normalizePekerjaanPayload(payload = {}) {
   return {
     nama_perusahaan: (payload.nama_perusahaan || '').trim(),
     posisi: (payload.posisi || '').trim(),
-    tahun_mulai: body.tahun_mulai || null,
+    tahun_mulai: payload.tahun_mulai || null,
     jenis_instansi: (payload.jenis_instansi || '').trim(),
     alamat_kerja: (payload.alamat_kerja || '').trim(),
     email_publik: (payload.email_publik || '').trim(),
