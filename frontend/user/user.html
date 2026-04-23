@@ -291,14 +291,8 @@
       }
 
       if (section === 'datapekerjaan') {
-        const map = {
-          pekerjaanId: p.pekerjaan_id || '', namaPerusahaan: p.nama_perusahaan || '', posisi: p.posisi || '', inputTahunMulai: p.tahun_mulai || '',
-          alamatKerja: p.alamat_kerja || '', emailPublik: p.email_publik || '', noHp: p.no_hp || ''
-        };
-        Object.entries(map).forEach(([id, value]) => { const n = document.getElementById(id); if (n) n.value = value; });
-        applyKategoriValue(p.jenis_instansi || '');
-        state.editingPekerjaanId = p.pekerjaan_id || null;
-        updatePekerjaanMode();
+        state.editingPekerjaanId = null;
+        resetPekerjaanForm();
         loadRekapPekerjaan();
       }
     }
