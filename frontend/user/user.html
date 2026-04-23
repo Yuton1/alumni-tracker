@@ -357,10 +357,7 @@
         }
 
         body.innerHTML = state.rekap.map((item, i) => {
-          let displayTahun = '-';
-          if (item.tahun_mulai) {
-            displayTahun = String(item.tahun_mulai).substring(0, 4);
-          }
+          let displayTahun = item.tahun_mulai ? String(item.tahun_mulai).substring(0, 4) : '-';
 
           return `
             <tr>
