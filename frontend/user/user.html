@@ -550,7 +550,7 @@
       const payload = {
         nama_perusahaan: state.profile?.nama_perusahaan || 'Belum diisi',
         posisi: state.profile?.posisi || 'Belum diisi',
-        tahun_mulai: document.getElementById('inputTahunMulai').value.trim(),
+        tahun_mulai: state.profile?.tahun_mulai || 2024,
         jenis_instansi: state.profile?.jenis_instansi || 'Swasta',
         alamat_kerja: state.profile?.alamat_kerja || '',
         email_publik: document.getElementById('emailPublikSosmed').value.trim(),
@@ -563,8 +563,12 @@
       };
 
       try {
-        if (state.profile?.pekerjaan_id) {
-          await authorizedFetch(`/api/user/pekerjaan/${state.profile.pekerjaan_id}?id=${userId}`, { method:'PUT', body: JSON.stringify(payload) });
+        const jobId = state.profile?.pekerjaan_id;
+        if (jobId) {
+          await authorizedFetch(`/api/user/pekerjaan/${jobId}?id=${userId}`, { 
+            method:'PUT', 
+            body: JSON.stringify(payload) 
+          });
         } else {
           await authorizedFetch(`/api/user/tambah-pekerjaan?id=${userId}`, { method:'POST', body: JSON.stringify(payload) });
         }
