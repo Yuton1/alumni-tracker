@@ -375,7 +375,7 @@
       const payload = {
         nama_perusahaan: document.getElementById('namaPerusahaan').value.trim(),
         posisi: document.getElementById('posisi').value.trim(),
-        tahun_mulai: document.getElementById('inputTahunMulai').value.trim(),
+        tahun_mulai: parseInt(document.getElementById('inputTahunMulai').value) || null,
         jenis_instansi: getKategoriValue(),
         alamat_kerja: document.getElementById('alamatKerja').value.trim(),
         email_publik: document.getElementById('emailPublik').value.trim(), // Email perusahaan
@@ -450,6 +450,7 @@
       const payload = {
         nama_perusahaan: state.profile?.nama_perusahaan || 'Belum diisi',
         posisi: state.profile?.posisi || 'Belum diisi',
+        tahun_mulai: document.getElementById('inputTahunMulai').value.trim(),
         jenis_instansi: state.profile?.jenis_instansi || 'Swasta',
         alamat_kerja: state.profile?.alamat_kerja || '',
         email_publik: document.getElementById('emailPublikSosmed').value.trim(),

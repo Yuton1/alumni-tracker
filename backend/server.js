@@ -833,6 +833,7 @@ app.put('/api/user/pekerjaan/:id', (req, res) => {
   const sql = `UPDATE pekerjaan_alumni
                SET nama_perusahaan = ?,
                    posisi = ?,
+                   tahun_mulai = ?,
                    jenis_instansi = ?,
                    alamat_kerja = ?,
                    email_publik = ?,
@@ -847,6 +848,7 @@ app.put('/api/user/pekerjaan/:id', (req, res) => {
   const values = [
     payload.nama_perusahaan,
     payload.posisi,
+    payload.tahun_mulai,
     payload.jenis_instansi,
     payload.alamat_kerja,
     payload.email_publik,
