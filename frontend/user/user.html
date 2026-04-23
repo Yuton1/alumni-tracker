@@ -292,7 +292,7 @@
 
       if (section === 'datapekerjaan') {
         const map = {
-          pekerjaanId: p.pekerjaan_id || '', namaPerusahaan: p.nama_perusahaan || '', posisi: p.posisi || '',
+          pekerjaanId: p.pekerjaan_id || '', namaPerusahaan: p.nama_perusahaan || '', posisi: p.posisi || '', tahunMulai: p.tahun_mulai || '',
           alamatKerja: p.alamat_kerja || '', emailPublik: p.email_publik || '', noHp: p.no_hp || ''
         };
         Object.entries(map).forEach(([id, value]) => { const n = document.getElementById(id); if (n) n.value = value; });
@@ -370,24 +370,28 @@
       e.preventDefault();
       const userId = getUserId();
       if (!userId) return;
-
+        
       const payload = {
         nama_perusahaan: document.getElementById('namaPerusahaan').value.trim(),
         posisi: document.getElementById('posisi').value.trim(),
+        tahun_mulai: document.getElementById('tahunMulai').value.trim(), // Tambahkan ini
         jenis_instansi: getKategoriValue(),
         alamat_kerja: document.getElementById('alamatKerja').value.trim(),
-        email_publik: document.getElementById('emailPublik').value.trim(),
+        email_publik: document.getElementById('emailPublik').value.trim(), // Email perusahaan
         no_hp: document.getElementById('noHp').value.trim(),
+        // Data sosmed tetap diambil dari profil jika tidak ingin diubah di sini
         linkedin_url: state.profile?.linkedin_url || '',
         ig_url: state.profile?.ig_url || '',
         fb_url: state.profile?.fb_url || '',
         tiktok_url: state.profile?.tiktok_url || '',
         sosmed_kantor: ''
       };
-
-      if (!payload.nama_perusahaan || !payload.posisi) { showToast('Nama perusahaan dan posisi wajib diisi.', 'warning'); return; }
-      if (!payload.jenis_instansi) { showToast('Kategori instansi wajib diisi.', 'warning'); return; }
-
+    
+      if (!payload.nama_perusahaan || !payload.posisi || !payload.tahun_mulai) { 
+        showToast('Nama perusahaan, posisi, dan tahun mulai wajib diisi.', 'warning'); 
+        return; 
+      }
+    
       try {
         if (state.editingPekerjaanId) {
           await authorizedFetch(`/api/user/pekerjaan/${state.editingPekerjaanId}?id=${userId}`, { method:'PUT', body: JSON.stringify(payload) });
@@ -414,6 +418,7 @@
         document.getElementById('pekerjaanId').value = row.id || '';
         document.getElementById('namaPerusahaan').value = row.nama_perusahaan || '';
         document.getElementById('posisi').value = row.posisi || '';
+        document.getElementById('tahunMulai').value = row.tahun_mulai || '';
         document.getElementById('alamatKerja').value = row.alamat_kerja || '';
         document.getElementById('emailPublik').value = row.email_publik || '';
         document.getElementById('noHp').value = row.no_hp || '';
