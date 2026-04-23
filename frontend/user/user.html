@@ -351,11 +351,12 @@
         if (!state.rekap.length) { body.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Belum ada data pekerjaan.</td></tr>'; return; }
         body.innerHTML = state.rekap.map((item, i) => `
           <tr>
-            <td>${i + 1}</td>
-            <td>${item.nama_perusahaan || '-'}</td>
+            <td class="px-4 py-3">${i + 1}</td>
+            <td>${item.tahun_mulai || '-'}
+            <td class="fw-bold">${item.nama_perusahaan || '-'}</td>
             <td>${item.posisi || '-'}</td>
-            <td>${item.jenis_instansi || '-'}</td>
-            <td>
+            <td><span class="badge bg-light text-dark">${item.jenis_instansi || '-'}</span></td>
+            <td class="text-center">
               <button class="btn btn-sm btn-outline-primary me-1" data-action="edit" data-id="${item.id}"><i class="fas fa-pen"></i></button>
               <button class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${item.id}"><i class="fas fa-trash"></i></button>
             </td>
