@@ -302,6 +302,20 @@
           const node = document.getElementById(id);
           if (node) node.textContent = value;
         });
+        
+        const userId = getUserId();
+        authorizedFetch(`/api/user/rekap-pekerjaan?id=${userId}&t=${Date.now()}`)
+          .then(rows => {
+            if (Array.isArray(rows) && rows.length > 0) {
+              // Diurutkan berdasarkan tahun_mulai dari yang terbesar (terbaru)
+              const sortedJobs = rows.sort((a, b) => (parseInt(b.tahun_mulai) || 0) - (parseInt(a.tahun_mulai) || 0));
+              const latest = sortedJobs;
+
+              if (document.getElementById('dashPerusahaan')) document.getElementById('dashPerusahaan').textContent = latest.nama_perusahaan || '-';
+              if (document.getElementById('dashPosisi')) document.getElementById('dashPosisi').textContent = latest.posisi || '-';
+              if (document.getElementById('dashJenisInstansi')) document.getElementById('dashJenisInstansi').textContent = latest.jenis_instansi || '-';
+            }
+          }).catch(err => console.error("Gagal memuat pekerjaan:", err));
 
         const socials = [
           { id: 'dashLinkedinItem', url: p.linkedin_url || '' },
@@ -413,7 +427,7 @@
 
       try {
         const rows = await authorizedFetch(`/api/user/rekap-pekerjaan?id=${userId}&t=${Date.now()}`);
-        state.rekap = Array.isArray(rows) ? rows : [];
+        state.rekap = Array.isArray(rows) ? rows.sort((a, b) => (parseInt(b.tahun_mulai) || 0) - (parseInt(a.tahun_mulai) || 0)) : [];
 
         if (!state.rekap.length) { 
           body.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">Belum ada data pekerjaan.</td></tr>'; 
