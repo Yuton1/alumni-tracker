@@ -359,16 +359,16 @@
         body.innerHTML = state.rekap.map((item, i) => {
           console.log("Cek Row:", item);
           // 1. Definisikan variabel dengan nama yang jelas
-          const tahunTampil = item.tahun_mulai ? String(item.tahun_mulai).substring(0, 4) : '-';
-          const namaPT = item.nama_perusahaan || '-';
-          const posisiKerja = item.posisi || '-';
-          const jenisInstansi = item.jenis_instansi || '-';
+          const tahunData = item.tahun_mulai ? String(item.tahun_mulai).substring(0, 4) : '-';
+          const perusahaanData = item.nama_perusahaan || '-';
+          const posisiData = item.posisi || '-';
+          const kategoriData = item.jenis_instansi || '-';
                 
           return `
             <tr>
               <td class="px-4 py-3">${i + 1}</td>
-              <td class="fw-bold text-dark">${namaPT}</td>
               <td class="fw-bold text-primary">${tahunTampil}</td>
+              <td class="fw-bold text-dark">${namaPT}</td>
               <td>${posisiKerja}</td>
               <td><span class="badge bg-light text-dark border">${jenisInstansi}</span></td>
               <td class="text-center">
