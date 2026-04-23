@@ -11,17 +11,63 @@
     :root { --bg:#f3f7ff; --side:#0f172a; --line:#d9e1f2; --brand:#2563eb; }
     body { margin:0; font-family:'Poppins',sans-serif; background:var(--bg); color:#1f2937; }
     .shell { display:flex; min-height:100vh; }
-    .sidebar { width:260px; background:linear-gradient(180deg,#0f172a,#1e293b); color:#e2e8f0; transition:.25s; }
+    .sidebar { 
+    width: 260px; 
+    background: linear-gradient(180deg,#0f172a,#1e293b); 
+    color: #e2e8f0; 
+    transition: .25s; 
+    position: fixed; 
+    height: 100vh;
+    z-index: 100;
+    display: flex;
+    flex-direction: column; 
+    }
     .sidebar.collapsed { width:86px; }
+    .sidebar.collapsed + .main { margin-left: 86px; }
     .brand { height:72px; display:flex; align-items:center; gap:10px; padding:0 16px; border-bottom:1px solid rgba(255,255,255,.14); }
     .brand i { width:38px; height:38px; border-radius:12px; background:linear-gradient(135deg,#2563eb,#38bdf8); display:flex; align-items:center; justify-content:center; color:#fff; }
     .brand-text { font-weight:600; white-space:nowrap; }
     .sidebar.collapsed .brand-text,.sidebar.collapsed .menu-text { display:none; }
-    .menu { padding:12px 8px; display:flex; flex-direction:column; gap:6px; }
+    .menu { 
+    padding: 12px 8px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 6px; 
+    height: 100%; /* Ambil sisa ruang */
+    }
     .menu button { border:none; background:transparent; color:#e2e8f0; text-align:left; border-radius:10px; padding:10px 12px; display:flex; gap:10px; align-items:center; }
     .menu button:hover { background:rgba(37,99,235,.15); }
     .menu button.active { background:linear-gradient(135deg,#2563eb,#38bdf8); color:#fff; box-shadow:0 8px 18px rgba(37,99,235,.35); }
-    .main { flex:1; padding:18px; }
+    .main { 
+    flex: 1; 
+    padding: 18px; 
+    margin-left: 260px; /* Sama dengan lebar sidebar */
+    transition: .25s;
+    }
+    .toggle-edge {
+    position: absolute;
+    right: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    background: var(--brand);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 2px solid #fff;
+    font-size: 0.7rem;
+    z-index: 110;
+    }
+
+    #logoutButton {
+    margin-top: auto; 
+    margin-bottom: 20px;
+    color: #f87171; /* Warna kemerahan agar beda */
+    }
     .top { background:#fff; border:1px solid var(--line); border-radius:16px; padding:14px; display:flex; justify-content:space-between; align-items:center; gap:10px; box-shadow:0 10px 25px rgba(15,23,42,.08); }
     .top h1 { margin:0; font-size:1.1rem; }
     .top p { margin:0; font-size:.82rem; color:#64748b; }
@@ -31,21 +77,45 @@
     .summary h5 { margin:0; font-size:1rem; }
     .summary p { margin:0; font-size:.8rem; opacity:.92; }
     .content { margin-top:14px; background:#fff; border:1px solid var(--line); border-radius:16px; padding:16px; min-height:360px; box-shadow:0 10px 25px rgba(15,23,42,.08); }
-    @media (max-width:991px){ .sidebar{position:fixed;z-index:20;height:100vh;} .sidebar.collapsed{transform:translateX(-100%);width:260px;} .main{width:100%;} }
+    @media (max-width: 991px) {
+    .main { margin-left: 0 !important; }
+    .sidebar.collapsed { transform: translateX(-100%); }
+    }
   </style>
 </head>
 <body>
   <div class="shell">
     <aside class="sidebar" id="sidebar">
-      <div class="brand"><i class="fas fa-user-graduate"></i><span class="brand-text">Alumni Dashboard</span></div>
-      <div class="menu">
-        <button class="active" data-section="dashboarduser"><i class="fas fa-house-user"></i><span class="menu-text">Dashboard</span></button>
-        <button data-section="akademik"><i class="fas fa-id-badge"></i><span class="menu-text">Akademik</span></button>
-        <button data-section="datapekerjaan"><i class="fas fa-briefcase"></i><span class="menu-text">Data Pekerjaan</span></button>
-        <button data-section="mediasosial"><i class="fas fa-hashtag"></i><span class="menu-text">Media Sosial</span></button>
-        <button data-section="gantifoto"><i class="fas fa-camera"></i><span class="menu-text">Ganti Foto</span></button>
-        <button id="logoutButton"><i class="fas fa-sign-out-alt"></i><span class="menu-text">Logout</span></button>
-      </div>
+        <div class="toggle-edge" id="edgeToggle">
+            <i class="fas fa-chevron-left" id="toggleIcon"></i>
+        </div>
+
+        <div class="brand">
+            <i class="fas fa-user-graduate"></i>
+            <span class="brand-text">Alumni Dashboard</span>
+        </div>
+
+        <div class="menu">
+            <button class="active" data-section="dashboarduser">
+                <i class="fas fa-house-user"></i><span class="menu-text">Dashboard</span>
+            </button>
+            <button data-section="akademik">
+                <i class="fas fa-id-badge"></i><span class="menu-text">Akademik</span>
+            </button>
+            <button data-section="datapekerjaan">
+                <i class="fas fa-briefcase"></i><span class="menu-text">Data Pekerjaan</span>
+            </button>
+            <button data-section="mediasosial">
+                <i class="fas fa-hashtag"></i><span class="menu-text">Media Sosial</span>
+            </button>
+            <button data-section="gantifoto">
+                <i class="fas fa-camera"></i><span class="menu-text">Ganti Foto</span>
+            </button>
+
+            <button id="logoutButton">
+                <i class="fas fa-sign-out-alt"></i><span class="menu-text">Logout</span>
+            </button>
+        </div>
     </aside>
 
     <main class="main">
@@ -570,6 +640,20 @@
         }
       });
     }
+    const sidebar = document.getElementById('sidebar');
+    const edgeToggle = document.getElementById('edgeToggle');
+    const toggleIcon = document.getElementById('toggleIcon');
+
+    edgeToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+        
+        // Ubah arah panah ikon
+        if (sidebar.classList.contains('collapsed')) {
+            toggleIcon.classList.replace('fa-chevron-left', 'fa-chevron-right');
+        } else {
+            toggleIcon.classList.replace('fa-chevron-right', 'fa-chevron-left');
+        }
+    });
 
     document.addEventListener('DOMContentLoaded', init);
   </script>
