@@ -311,7 +311,7 @@
               const sortedJobs = rows.sort((a, b) => (parseInt(b.tahun_mulai) || 0) - (parseInt(a.tahun_mulai) || 0));
               const latest = sortedJobs;
 
-              console.log("Data Pekerjaan Terkini:", latest);
+              console.log("Menampilkan pekerjaan terbaru:", latest);
               const perusahaanEl = document.getElementById('dashPerusahaan');
               const posisiEl = document.getElementById('dashPosisi');
               const instansiEl = document.getElementById('dashJenisInstansi');
