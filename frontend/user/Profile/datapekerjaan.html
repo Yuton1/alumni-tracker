@@ -11,7 +11,7 @@
 
     <div class="col-md-6">
       <div class="p-3 bg-white rounded-4 shadow-sm border-0 h-100">
-        <label class="form-label small text-muted fw-bold mb-2">NAMA PERUSAHAAN</label>
+        <label class="form-label small text-muted fw-bold mb-2">NAMA PERUSAHAAN / INSTANSI</label>
         <div class="input-group">
           <span class="input-group-text bg-light border-0"><i class="fas fa-building text-muted"></i></span>
           <input type="text" id="namaPerusahaan" class="form-control border-0 bg-light rounded-end-3 fw-medium" required placeholder="Nama instansi">
@@ -19,12 +19,22 @@
       </div>
     </div>
 
-    <div class="col-md-6">
+    <div class="col-md-3">
       <div class="p-3 bg-white rounded-4 shadow-sm border-0 h-100">
         <label class="form-label small text-muted fw-bold mb-2">POSISI / JABATAN</label>
         <div class="input-group">
           <span class="input-group-text bg-light border-0"><i class="fas fa-briefcase text-muted"></i></span>
           <input type="text" id="posisi" class="form-control border-0 bg-light rounded-end-3 fw-medium" required placeholder="Contoh: Senior Manager">
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="p-3 bg-white rounded-4 shadow-sm border-0 h-100">
+        <label class="form-label small text-muted fw-bold mb-2">TAHUN MULAI</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0"><i class="fas fa-calendar-alt text-muted"></i></span>
+          <input type="number" id="tahunMulai" class="form-control border-0 bg-light rounded-end-3 fw-medium" required placeholder="2024" min="1990" max="2099">
         </div>
       </div>
     </div>
@@ -63,14 +73,21 @@
 
     <div class="col-md-6">
       <div class="p-3 bg-white rounded-4 shadow-sm border-0 h-100">
-        <label class="form-label small text-muted fw-bold mb-2">EMAIL PUBLIK</label>
-        <input type="email" id="emailPublik" class="form-control border-0 bg-light fw-medium" placeholder="email@contoh.com">
+        <label class="form-label small text-muted fw-bold mb-2">EMAIL PERUSAHAAN (OPSIONAL)</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0"><i class="fas fa-envelope text-muted"></i></span>
+          <input type="email" id="emailPublik" class="form-control border-0 bg-light rounded-end-3 fw-medium" placeholder="email@kantor.com">
+        </div>
       </div>
     </div>
+
     <div class="col-md-6">
       <div class="p-3 bg-white rounded-4 shadow-sm border-0 h-100">
-        <label class="form-label small text-muted fw-bold mb-2">NO HP / WHATSAPP</label>
-        <input type="text" id="noHp" class="form-control border-0 bg-light fw-medium" placeholder="08xxxxxxxxxx">
+        <label class="form-label small text-muted fw-bold mb-2">NO HP / WHATSAPP KANTOR</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0"><i class="fas fa-phone text-muted"></i></span>
+          <input type="text" id="noHp" class="form-control border-0 bg-light rounded-end-3 fw-medium" placeholder="08xxxxxxxxxx">
+        </div>
       </div>
     </div>
 
@@ -86,7 +103,7 @@
 <div class="section-head d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
   <div>
     <h5 class="fw-bold mb-1 text-dark">Rekap Pekerjaan</h5>
-    <p class="text-muted mb-0 small">Daftar riwayat karir yang telah Anda tambahkan.</p>
+    <p class="text-muted mb-0 small">Daftar riwayat karir Anda (diurutkan dari yang terbaru).</p>
   </div>
 </div>
 
@@ -95,19 +112,13 @@
     <thead class="bg-light">
       <tr>
         <th class="border-0 px-4 py-3 text-muted small fw-bold" style="width: 60px; border-radius: 12px 0 0 12px;">NO</th>
-        <th class="border-0 py-3 text-muted small fw-bold">PERUSAHAAN</th>
+        <th class="border-0 py-3 text-muted small fw-bold">TAHUN</th> <th class="border-0 py-3 text-muted small fw-bold">PERUSAHAAN</th>
         <th class="border-0 py-3 text-muted small fw-bold">POSISI</th>
         <th class="border-0 py-3 text-muted small fw-bold">KATEGORI</th>
         <th class="border-0 py-3 text-muted small fw-bold text-center" style="width: 130px; border-radius: 0 12px 12px 0;">AKSI</th>
       </tr>
     </thead>
     <tbody id="rekapPekerjaanBody">
-      <tr>
-        <td colspan="5" class="text-center text-muted py-5 italic">
-          <i class="fas fa-folder-open fa-2x d-block mb-2 opacity-25"></i>
-          Memuat data riwayat pekerjaan...
-        </td>
-      </tr>
-    </tbody>
+      </tbody>
   </table>
 </div>
