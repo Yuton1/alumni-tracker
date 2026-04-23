@@ -344,26 +344,43 @@
       const userId = getUserId();
       const body = document.getElementById('rekapPekerjaanBody');
       if (!body || !userId) return;
-      body.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Memuat data...</td></tr>';
+      
+      body.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">Memuat data...</td></tr>';
+      
       try {
         const rows = await authorizedFetch(`/api/user/rekap-pekerjaan?id=${userId}&t=${Date.now()}`);
         state.rekap = Array.isArray(rows) ? rows : [];
-        if (!state.rekap.length) { body.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Belum ada data pekerjaan.</td></tr>'; return; }
-        body.innerHTML = state.rekap.map((item, i) => `
-          <tr>
-            <td class="px-4 py-3">${i + 1}</td>
-            <td>${item.tahun_mulai || '-'}
-            <td class="fw-bold">${item.nama_perusahaan || '-'}</td>
-            <td>${item.posisi || '-'}</td>
-            <td><span class="badge bg-light text-dark">${item.jenis_instansi || '-'}</span></td>
-            <td class="text-center">
-              <button class="btn btn-sm btn-outline-primary me-1" data-action="edit" data-id="${item.id}"><i class="fas fa-pen"></i></button>
-              <button class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${item.id}"><i class="fas fa-trash"></i></button>
-            </td>
-          </tr>
-        `).join('');
+        
+        if (!state.rekap.length) { 
+          body.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">Belum ada data pekerjaan.</td></tr>'; 
+          return; 
+        }
+
+        body.innerHTML = state.rekap.map((item, i) => {
+          // Logika pembersihan tahun agar tidak muncul "-" jika data ada
+          let displayTahun = '-';
+          if (item.tahun_mulai) {
+            // Jika formatnya full date (2023-01-01), ambil 4 angka depan. 
+            // Jika sudah 2023, tampilkan langsung.
+            displayTahun = String(item.tahun_mulai).substring(0, 4);
+          }
+
+          return `
+            <tr>
+              <td class="px-4 py-3">${i + 1}</td>
+              <td class="fw-bold text-primary">${displayTahun}</td>
+              <td class="fw-bold">${item.nama_perusahaan || '-'}</td>
+              <td>${item.posisi || '-'}</td>
+              <td><span class="badge bg-light text-dark border">${item.jenis_instansi || '-'}</span></td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-outline-primary me-1" data-action="edit" data-id="${item.id}"><i class="fas fa-pen"></i></button>
+                <button class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${item.id}"><i class="fas fa-trash"></i></button>
+              </td>
+            </tr>
+          `;
+        }).join('');
       } catch (e) {
-        body.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-3">${e.message}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-3">${e.message}</td></tr>`;
       }
     }
 
