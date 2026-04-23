@@ -344,13 +344,13 @@
       const userId = getUserId();
       const body = document.getElementById('rekapPekerjaanBody');
       if (!body || !userId) return;
-        
+
       body.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">Memuat data...</td></tr>';
-        
+
       try {
         const rows = await authorizedFetch(`/api/user/rekap-pekerjaan?id=${userId}&t=${Date.now()}`);
         state.rekap = Array.isArray(rows) ? rows : [];
-        
+
         if (!state.rekap.length) { 
           body.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">Belum ada data pekerjaan.</td></tr>'; 
           return; 
@@ -362,12 +362,12 @@
           const isiNamaPT = item.nama_perusahaan || '-';
           const isiPosisi = item.posisi || '-';
           const isiJenis = item.jenis_instansi || '-';
-                
+
           return `
             <tr>
               <td class="px-4 py-3">${i + 1}</td>
-              <td class="fw-bold text-primary">${isiTahun}</td>
-              <td class="fw-bold text-dark">${isiNamaPT}</td>
+              <td class=>${isiTahun}</td>
+              <td class=>${isiNamaPT}</td>
               <td>${isiPosisi}</td>
               <td><span class="badge bg-light text-dark border">${isiJenis}</span></td>
               <td class="text-center">
