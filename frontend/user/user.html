@@ -357,7 +357,10 @@
         }
 
         body.innerHTML = state.rekap.map((item, i) => {
-          let displayTahun = item.tahun_mulai ? String(item.tahun_mulai).substring(0, 4) : '-';
+          const tahun = item.tahun_mulai ? String(item.tahun_mulai).substring(0, 4) : '-';
+          const perusahaan = item.nama_perusahaan || '-';
+          const posisi = item.posisi || '-';
+          const kategori = item.jenis_instansi || '-';
 
           return `
             <tr>
