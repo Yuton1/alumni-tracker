@@ -13,18 +13,38 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'alumni-tracker-secret';
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use(cors({
-  origin: [
-    "https://alumni-tracker-xi.vercel.app",
-    "https://alumni-tracker-mir18z5t4-maliks-projects-1fd561e1.vercel.app",
-    "https://alumni-tracker.vercel.app",
-    "http://localhost:5500",
-    "http://127.0.0.1:5500"
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE"],
+
+const allowedOrigins = [
+  "https://alumni-tracker-xi.vercel.app",
+  "https://alumni-tracker-mir18z5t4-maliks-projects-1fd561e1.vercel.app",
+  "https://alumni-tracker.vercel.app",
+  "http://localhost:5500",
+  "http://127.0.0.1:5500"
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (
+      allowedOrigins.includes(origin) ||
+      /^https:\/\/.*\.vercel\.app$/i.test(origin) ||
+      /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)
+    ) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`Origin tidak diizinkan oleh CORS: ${origin}`), false);
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true,
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
+};
+
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 app.use(express.json());
 
 const db = mysql.createPool({

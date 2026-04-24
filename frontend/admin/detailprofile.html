@@ -606,7 +606,7 @@
     const params = new URLSearchParams(window.location.search);
     const idAlumni = params.get('id');
 
-    const API_BASE = "https://alumni-tracker-api.onrender.com";
+    const API_BASE = window.location.origin;
     let currentInsight = null;
 
     function getToken() {
@@ -787,11 +787,11 @@
             
             currentInsight = data;
             document.getElementById('profileName').textContent = data.nama || 'Nama Tidak Diketahui';
-            document.getElementById('profileId').textContent = '#' + (data.nim || idAlumni); 
+            document.getElementById('profileId').textContent = '#' + (data.id || idAlumni);
             document.getElementById('profileProdi').textContent = data.prodi || '-';
-          
-            // Sesuaikan jika di database kolomnya 'tahun_masuk'
-            const tahun = data.tahun_masuk || '-';
+
+            const tahun = data.tahun_lulus
+              || (data.tanggal_lulus ? new Date(data.tanggal_lulus).getFullYear() : '-');
             document.getElementById('profileYear').textContent = tahun;
           
             renderAvatar(data);
