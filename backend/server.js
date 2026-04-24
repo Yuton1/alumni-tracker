@@ -22,7 +22,6 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
-app.options('*', cors());
 app.use(express.json());
 
 const db = mysql.createPool({
@@ -981,10 +980,10 @@ app.get('/api/healthcheck', async (req, res) => {
 });
 
 // ===== START SERVER =====
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Server running on port ${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`✅ Server running on port ${PORT}`);
+  });
+}
 
-// Export untuk Vercel
 module.exports = app;
