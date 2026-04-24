@@ -642,19 +642,22 @@
     }
 
     async function authorizedFetch(endpoint, options = {}) {
+      const token = localStorage.getItem('token');
       const headers = new Headers(options.headers || {});
-      const token = getToken();
       if (token) {
         headers.set('Authorization', `Bearer ${token}`);
+      } else {
+        console.warn("Token tidak ditemukan di localStorage");
       }
 
       const response = await fetch(`${API_BASE}${endpoint}`, {
         ...options,
-        headers
+        headers: headers
       });
 
-      if (response.status === 401) {
-        alert('Sesi berakhir. Silakan login kembali.');
+      if (response.status === 401 || response.status === 403) {
+        alert('Sesi berakhir atau akses ditolak. Silakan login kembali.');
+        localStorage.removeItem('token');
         window.location.replace('/login.html');
         return null;
       }
@@ -671,9 +674,10 @@
       const photo = data.foto_profil || data.photo || '';
 
       if (photo) {
-        avatar.innerHTML = `<img src="${escapeHtml(photo)}" alt="Foto ${escapeHtml(data.nama || 'alumni')}">`;
+        avatar.innerHTML = `<img src="${escapeHtml(photo)}"
+                            alt="Foto ${escapeHtml(data.nama)}"
+                            onerror="this.parentElement.innerHTML='${buildInitials(data.nama)}';">`;
         avatar.style.background = '#fff';
-        avatar.style.color = 'transparent';
         return;
       }
 
@@ -787,7 +791,7 @@
             document.getElementById('profileProdi').textContent = data.prodi || '-';
           
             // Sesuaikan jika di database kolomnya 'tahun_masuk'
-            const tahun = data.tahun_masuk || data.tahun_lulus || '-';
+            const tahun = data.tahun_masuk || '-';
             document.getElementById('profileYear').textContent = tahun;
           
             renderAvatar(data);
@@ -795,7 +799,7 @@
             // Bagian Akademik
             document.getElementById('academicProdi').textContent = data.prodi || '-';
             document.getElementById('academicFaculty').textContent = data.fakultas || '-';
-            document.getElementById('academicYear').textContent = data.tahun_masuk || '-';
+            document.getElementById('academicYear').textContent = tahun;
             document.getElementById('academicCity').textContent = data.kota || '-';
           
             // Bagian Pekerjaan (Pastikan API mengirimkan field ini)
