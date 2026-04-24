@@ -16,6 +16,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(cors({
   origin: [
     "https://alumni-tracker-xi.vercel.app",
+    "https://alumni-tracker-mir18z5t4-maliks-projects-1fd561e1.vercel.app",
+    "https://alumni-tracker.vercel.app",
     "http://localhost:5500",
     "http://127.0.0.1:5500"
   ],
