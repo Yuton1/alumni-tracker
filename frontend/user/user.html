@@ -307,30 +307,37 @@
         authorizedFetch(`/api/user/rekap-pekerjaan?id=${userId}&t=${Date.now()}`)
           .then(rows => {
             console.log("Data mentah dari API:", rows);
+            
+            // Pastikan data adalah array dan tidak kosong
             if (Array.isArray(rows) && rows.length > 0) {
-              // Diurutkan berdasarkan tahun_mulai dari yang terbesar (terbaru)
+              
+              // 1. Urutkan (Data terbaru di atas)
               const sortedJobs = rows.sort((a, b) => (parseInt(b.tahun_mulai) || 0) - (parseInt(a.tahun_mulai) || 0));
-              const latest = sortedJobs;
-              console.table(latest);
+              
+              // 2. GANTI INI: Ambil index ke-0 (Data paling baru)
+              const latest = sortedJobs; 
+              
+              console.log("Data terbaru yang ditampilkan:", latest);
+            
               const updateEl = (id, value) => {
                 const el = document.getElementById(id);
                 if (el) el.textContent = value || '-';
               };
+            
+              // 3. Sekarang latest.nama_perusahaan akan terbaca karena 'latest' adalah Objek, bukan Array
               updateEl('dashPerusahaan', latest.nama_perusahaan);
               updateEl('dashPosisi', latest.posisi);
               updateEl('dashJenisInstansi', latest.jenis_instansi);
+              
             } else {
-              console.warn("API Berhasil tapi data kosong untuk user ini.");
-
-              console.log("Menampilkan pekerjaan terbaru:", latest);
-              const perusahaanEl = document.getElementById('dashPerusahaan');
-              const posisiEl = document.getElementById('dashPosisi');
-              const instansiEl = document.getElementById('dashJenisInstansi');
-              if (document.getElementById('dashPerusahaan')) document.getElementById('dashPerusahaan').textContent = latest.nama_perusahaan || '-';
-              if (document.getElementById('dashPosisi')) document.getElementById('dashPosisi').textContent = latest.posisi || '-';
-              if (document.getElementById('dashJenisInstansi')) document.getElementById('dashJenisInstansi').textContent = latest.jenis_instansi || '-';
+              // Jika data kosong, tampilkan strip
+              ['dashPerusahaan', 'dashPosisi', 'dashJenisInstansi'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = '-';
+              });
             }
-          }).catch(err => console.error("Gagal memuat pekerjaan:", err));
+          })
+          .catch(err => console.error("Gagal memuat pekerjaan:", err));
 
         const socials = [
           { id: 'dashLinkedinItem', url: p.linkedin_url || '' },
@@ -441,7 +448,8 @@
       body.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">Memuat data...</td></tr>';
 
       try {
-        const rows = await authorizedFetch(`/api/user/rekap-pekerjaan?id=${userId}&t=${Date.now()}`);
+        const rows = await 
+        authorizedFetch(`/api/user/rekap-pekerjaan?id=${userId}&t=${Date.now()}`);
         state.rekap = Array.isArray(rows) ? rows.sort((a, b) => (parseInt(b.tahun_mulai) || 0) - (parseInt(a.tahun_mulai) || 0)) : [];
 
         if (!state.rekap.length) { 
