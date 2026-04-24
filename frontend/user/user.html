@@ -311,10 +311,10 @@
             if (Array.isArray(rows) && rows.length > 0) {
               // 1. Urutkan: Tahun terbaru (2025) akan berada di paling atas (index 0)
               const sortedJobs = rows.sort((a, b) => (parseInt(b.tahun_mulai) || 0) - (parseInt(a.tahun_mulai) || 0));
-              
-              // 2. PERBAIKAN: Ambil item pertama saja
-              const latest = sortedJobs; 
-              
+
+              // 2. AMBIL INDEKS KE-0 (Data Pekerjaan Terbaru)
+              const latest = sortedJobs[0]; 
+
               console.log("Data terbaru yang dipilih:", latest);
             
               const updateEl = (id, value) => {
