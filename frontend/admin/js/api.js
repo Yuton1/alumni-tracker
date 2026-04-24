@@ -6,7 +6,7 @@
 
 // ===== CONFIGURATION =====
 const API_CONFIG = {
-  BASE_URL: window.location.origin, // Sesuaikan jika berbeda
+  BASE_URL: "https://alumni-tracker-api.onrender.com",
   TIMEOUT: 10000
 };
 
