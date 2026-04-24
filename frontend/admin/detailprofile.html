@@ -869,11 +869,17 @@
     async function loadDataAlumni() {
         try {
             const storedInsight = getStoredInsight();
-            let data = storedInsight && String(storedInsight.id) === String(idAlumni) ? storedInsight : null;
-
-            if (!data) {
-              data = await authorizedFetch(`/api/admin/tracking-workbench/${idAlumni}`);
+            let fetchedInsight = null;
+            try {
+              fetchedInsight = await authorizedFetch(`/api/admin/tracking-workbench/${idAlumni}`);
+            } catch (apiError) {
+              console.warn('API detail gagal, memakai snapshot dashboard:', apiError);
             }
+
+            const data = {
+              ...(storedInsight || {}),
+              ...(fetchedInsight || {})
+            };
 
             if (!data) {
               document.querySelectorAll('.info-value, .profile-meta').forEach((el) => {
