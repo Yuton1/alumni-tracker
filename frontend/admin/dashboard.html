@@ -714,6 +714,12 @@
 
     // ===== EVENT HANDLERS =====
     function openProfileDetail(id) {
+      const selected = state.activeTab === 'antrean'
+        ? state.antrean.find(item => String(item.id) === String(id))
+        : state.master.find(item => String(item.id) === String(id));
+      if (selected) {
+        sessionStorage.setItem('selectedAdminInsight', JSON.stringify(selected));
+      }
       window.location.href = `detailprofile.html?id=${id}`;
     }
 

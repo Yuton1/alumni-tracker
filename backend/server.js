@@ -601,11 +601,7 @@ app.post('/api/track/:id', (req, res) => {
   });
 });
 
-app.get('/api/admin/tracking-workbench', authenticateToken, (req, res) => {
-  if (req.user?.role !== 'admin') {
-    return res.status(403).json({ message: 'Akses admin ditolak' });
-  }
-
+app.get('/api/admin/tracking-workbench', (req, res) => {
   const sql = `
     SELECT
       m.id,
@@ -646,11 +642,7 @@ app.get('/api/admin/tracking-workbench', authenticateToken, (req, res) => {
   });
 });
 
-app.get('/api/admin/tracking-workbench/:id', authenticateToken, (req, res) => {
-  if (req.user?.role !== 'admin') {
-    return res.status(403).json({ message: 'Akses admin ditolak' });
-  }
-
+app.get('/api/admin/tracking-workbench/:id', (req, res) => {
   const id = Number.parseInt(req.params.id, 10);
   if (Number.isNaN(id) || id <= 0) {
     return res.status(400).json({ message: 'ID alumni tidak valid' });

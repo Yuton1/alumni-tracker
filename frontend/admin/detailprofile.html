@@ -609,6 +609,15 @@
     const API_BASE = window.location.origin;
     let currentInsight = null;
 
+    function getStoredInsight() {
+      try {
+        const raw = sessionStorage.getItem('selectedAdminInsight');
+        return raw ? JSON.parse(raw) : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
     function getToken() {
       return localStorage.getItem('token');
     }
@@ -646,25 +655,20 @@
       const headers = new Headers(options.headers || {});
       if (token) {
         headers.set('Authorization', `Bearer ${token}`);
-      } else {
-        console.warn("Token tidak ditemukan di localStorage");
       }
 
       const response = await fetch(`${API_BASE}${endpoint}`, {
         ...options,
-        headers: headers
+        headers
       });
 
-      if (response.status === 401 || response.status === 403) {
-        alert('Sesi berakhir atau akses ditolak. Silakan login kembali.');
-        localStorage.removeItem('token');
-        window.location.replace('/login.html');
-        return null;
-      }
+      const contentType = response.headers.get('content-type') || '';
+      const payload = contentType.includes('application/json')
+        ? await response.json()
+        : await response.text();
 
-      const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload.message || `Gagal memuat data (${response.status})`);
+        throw new Error((payload && payload.message) || `Gagal memuat data (${response.status})`);
       }
       return payload;
     }
@@ -767,24 +771,23 @@
     }
 
     async function loadDataAlumni() {
-        // 1. Ambil token dengan konsisten
-        const token = localStorage.getItem('token');
-        if (!token) {
-            alert("Sesi habis, silakan login kembali.");
-            window.location.href = '/login.html';
-            return;
-        }
-      
         try {
-            // 2. Gunakan authorizedFetch atau fetch biasa dengan header
-            // Pastikan idAlumni sudah terdefinisi dari URL
-            const data = await authorizedFetch(`/api/admin/tracking-workbench/${idAlumni}`);
-            
+            const storedInsight = getStoredInsight();
+            let data = storedInsight && String(storedInsight.id) === String(idAlumni) ? storedInsight : null;
+
             if (!data) {
-                console.error("Data tidak ditemukan atau response kosong");
-                return;
+              data = await authorizedFetch(`/api/admin/tracking-workbench/${idAlumni}`);
             }
-            
+
+            if (!data) {
+              document.querySelectorAll('.info-value, .profile-meta').forEach((el) => {
+                if (!el.textContent || el.textContent.trim() === '' || el.textContent.trim() === '-') {
+                  el.textContent = '-';
+                }
+              });
+              throw new Error('Data alumni belum tersedia.');
+            }
+
             currentInsight = data;
             document.getElementById('profileName').textContent = data.nama || 'Nama Tidak Diketahui';
             document.getElementById('profileId').textContent = '#' + (data.id || idAlumni);
@@ -844,16 +847,15 @@
           
         } catch (error) {
             console.error("Error Detail Profil:", error);
-            // Jika error 403, arahkan ke login
-            if (error.message.includes('403') || error.message.includes('Token')) {
-                alert("Sesi tidak valid, silakan login ulang.");
-                window.location.href = '/login.html';
-            }
+            console.error('Error Detail Profil:', error);
         }
     }
 
     function triggerAutomatedSearch() {
       if (!idAlumni) return;
+      if (currentInsight) {
+        sessionStorage.setItem('selectedAdminInsight', JSON.stringify(currentInsight));
+      }
       window.location.href = `tracking-engine.html?id=${idAlumni}`;
     }
 
