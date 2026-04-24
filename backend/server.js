@@ -13,13 +13,31 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'alumni-tracker-secret';
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const allowedOrigins = [
+  "https://alumni-tracker-xi.vercel.app",
+  "https://alumni-tracker.vercel.app",
+  "http://localhost:5500",
+  "http://127.0.0.1:5500"
+];
+
 app.use(cors({
-  origin: "*",
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log("CORS blocked origin:", origin);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
 }));
 
+// 🔥 PENTING — ini yang bikin preflight berhasil
 app.options('*', cors());
+
+app.use(express.json());
 
 const db = mysql.createPool({
   host: process.env.DB_HOST,
