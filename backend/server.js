@@ -34,8 +34,10 @@ const db = mysql.createPool({
   database: process.env.DB_DATABASE,
   port: process.env.DB_PORT || 4000,
   ssl: {
+    minVersion: "TLSv1.2",
     rejectUnauthorized: false
   },
+  connectTimeout: 60000,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -45,9 +47,10 @@ db.getConnection((err, connection) => {
   if (err) {
     console.error('KONEKSI DATABASE GAGAL:', err.message);
     return;
+  } else {
+    console.log("DATABASE TERHUBUNG");
+    connection.release();
   }
-  console.log('Koneksi Database Berhasil Terhubung!');
-  connection.release();
 });
 
 const storage = multer.diskStorage({
