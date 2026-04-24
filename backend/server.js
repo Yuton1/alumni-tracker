@@ -14,10 +14,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'alumni-tracker-secret';
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(cors({
-  origin: true,
-  credentials: true
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
-app.use(express.json());
+
+app.options('*', cors());
 
 const db = mysql.createPool({
   host: process.env.DB_HOST,
