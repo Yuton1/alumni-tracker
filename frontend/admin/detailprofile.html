@@ -459,11 +459,11 @@
           <div class="profile-avatar" id="profileAvatar">AH</div>
         </div>
         <div class="col">
-          <h1 class="profile-name" id="profileName">Ahmad Hidayat</h1>
+          <h1 class="profile-name" id="profileName">Kosong</h1>
           <p class="profile-meta">
-            <span id="profileId">#12345</span> • 
-            <span id="profileProdi">Teknik Informatika</span> • 
-            <span id="profileYear">2020</span>
+            <span id="profileId">ID</span> • 
+            <span id="profileProdi">Jurusan</span> • 
+            <span id="profileYear">Tahun Lulus</span>
           </p>
           <div>
             <span class="status-badge verified" id="statusBadge">
@@ -763,76 +763,94 @@
     }
 
     async function loadDataAlumni() {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert("Sesi habis, silakan login kembali.");
-        window.location.href = '/login.html';
-        return;
-      }
-
-      try {
-        const token = getToken();
+        // 1. Ambil token dengan konsisten
+        const token = localStorage.getItem('token');
         if (!token) {
-          alert("Sesi berakhir. Silakan login kembali.");
-          window.location.href = '/login.html';
-          return;
+            alert("Sesi habis, silakan login kembali.");
+            window.location.href = '/login.html';
+            return;
         }
-
-        const data = await authorizedFetch(`/api/admin/tracking-workbench/${idAlumni}`);
-        if (!data) return;
-        currentInsight = data;
-
-        document.getElementById('profileName').textContent = data.nama || 'Nama Tidak Diketahui';
-        document.getElementById('profileId').textContent = '#' + data.id;
-        document.getElementById('profileProdi').textContent = data.prodi || '-';
-
-        const tahun = data.tahun_lulus || '-';
-        document.getElementById('profileYear').textContent = tahun;
-
-        renderAvatar(data);
-
-        document.getElementById('academicProdi').textContent = data.prodi || '-';
-        document.getElementById('academicFaculty').textContent = data.fakultas || '-';
-        document.getElementById('academicYear').textContent = tahun;
-        document.getElementById('academicCity').textContent = data.kota || '-';
-
-        document.getElementById('employmentCompany').textContent = data.nama_perusahaan || '-';
-        document.getElementById('employmentPosition').textContent = data.posisi || '-';
-        document.getElementById('employmentCategory').textContent = data.jenis_instansi || '-';
-        document.getElementById('employmentLocation').textContent = data.alamat_kerja || '-';
-
-        document.getElementById('confidenceLabel').textContent = data.scoring?.label || '-';
-        document.getElementById('confidenceScore').textContent = `${data.scoring?.score ?? 0}/100`;
-        document.getElementById('confidencePercent').textContent = `${data.scoring?.score ?? 0}%`;
-        document.getElementById('confidenceFill').style.width = `${data.scoring?.score ?? 0}%`;
-        document.getElementById('validationLevel').textContent = data.validation?.level || '-';
-        document.getElementById('validationCount').textContent = `${data.validation?.count || 0} sumber`;
-
-        const statusBadge = document.getElementById('statusBadge');
-        const statusText = data.status_pelacakan || 'Belum Dilacak';
-
-        if (statusText === 'Teridentifikasi dari sumber publik') {
-          statusBadge.className = 'status-badge verified';
-          statusBadge.innerHTML = `<i class="fas fa-check-circle me-1"></i> ${statusText}`;
-        } else if (statusText === 'Perlu Verifikasi Manual') {
-          statusBadge.className = 'status-badge pending';
-          statusBadge.innerHTML = `<i class="fas fa-exclamation-circle me-1"></i> ${statusText}`;
-        } else {
-          statusBadge.className = 'status-badge unverified';
-          statusBadge.innerHTML = `<i class="fas fa-question-circle me-1"></i> ${statusText}`;
+      
+        try {
+            // 2. Gunakan authorizedFetch atau fetch biasa dengan header
+            // Pastikan idAlumni sudah terdefinisi dari URL
+            const data = await authorizedFetch(`/api/admin/tracking-workbench/${idAlumni}`);
+            
+            if (!data) {
+                console.error("Data tidak ditemukan atau response kosong");
+                return;
+            }
+            
+            currentInsight = data;
+          
+            // 3. Mapping data dari database ke HTML (Sesuaikan nama kolom database)
+            document.getElementById('profileName').textContent = data.nama || 'Nama Tidak Diketahui';
+            
+            // Ganti data.id menjadi data.nim sesuai tabel database kamu
+            document.getElementById('profileId').textContent = '#' + (data.nim || idAlumni); 
+            
+            document.getElementById('profileProdi').textContent = data.prodi || '-';
+          
+            // Sesuaikan jika di database kolomnya 'tahun_masuk'
+            const tahun = data.tahun_masuk || data.tahun_lulus || '-';
+            document.getElementById('profileYear').textContent = tahun;
+          
+            renderAvatar(data);
+          
+            // Bagian Akademik
+            document.getElementById('academicProdi').textContent = data.prodi || '-';
+            document.getElementById('academicFaculty').textContent = data.fakultas || '-';
+            document.getElementById('academicYear').textContent = tahun;
+            document.getElementById('academicCity').textContent = data.kota || '-';
+          
+            // Bagian Pekerjaan (Pastikan API mengirimkan field ini)
+            document.getElementById('employmentCompany').textContent = data.nama_perusahaan || '-';
+            document.getElementById('employmentPosition').textContent = data.posisi || '-';
+            document.getElementById('employmentCategory').textContent = data.jenis_instansi || '-';
+            document.getElementById('employmentLocation').textContent = data.alamat_kerja || '-';
+          
+            // Bagian Scoring & Validation
+            document.getElementById('confidenceLabel').textContent = data.scoring?.label || 'Low';
+            document.getElementById('confidenceScore').textContent = `${data.scoring?.score ?? 0}/100`;
+            document.getElementById('confidencePercent').textContent = `${data.scoring?.score ?? 0}%`;
+            document.getElementById('confidenceFill').style.width = `${data.scoring?.score ?? 0}%`;
+            document.getElementById('validationLevel').textContent = data.validation?.level || 'Bronze';
+            document.getElementById('validationCount').textContent = `${data.validation?.count || 0} sumber`;
+          
+            // Status Badge
+            const statusBadge = document.getElementById('statusBadge');
+            const statusText = data.status_pelacakan || 'Belum Dilacak';
+          
+            if (statusText.includes('verified') || statusText.includes('Teridentifikasi')) {
+                statusBadge.className = 'status-badge verified';
+                statusBadge.innerHTML = `<i class="fas fa-check-circle me-1"></i> ${statusText}`;
+            } else if (statusText === 'Perlu Verifikasi Manual') {
+                statusBadge.className = 'status-badge pending';
+                statusBadge.innerHTML = `<i class="fas fa-exclamation-circle me-1"></i> ${statusText}`;
+            } else {
+                statusBadge.className = 'status-badge unverified';
+                statusBadge.innerHTML = `<i class="fas fa-question-circle me-1"></i> ${statusText}`;
+            }
+          
+            // Last Update
+            const updateBadge = document.getElementById('updateBadge');
+            const dateString = data.last_update ? formatDate(data.last_update) : '-';
+            updateBadge.innerHTML = `<i class="fas fa-clock me-1"></i> Update: ${escapeHtml(dateString)}`;
+          
+            // Fungsi Render Lainnya
+            renderSocialLinks(data);
+            renderEvidence(data.evidence || []);
+            renderTimeline(data);
+            renderQueries(data.search_queries || []);
+          
+        } catch (error) {
+            console.error("Error Detail Profil:", error);
+            // Jika error 403, arahkan ke login
+            if (error.message.includes('403') || error.message.includes('Token')) {
+                alert("Sesi tidak valid, silakan login ulang.");
+                window.location.href = '/login.html';
+            }
         }
-
-        const updateBadge = document.getElementById('updateBadge');
-        updateBadge.innerHTML = `<i class="fas fa-clock me-1"></i> Update: ${escapeHtml(formatDate(data.last_update))}`;
-
-        renderSocialLinks(data);
-        renderEvidence(data.evidence);
-        renderTimeline(data);
-        renderQueries(data.search_queries);
-      } catch (error) {
-        console.error("Error Detail Profil:", error);
-        alert(error.message);
-      }
     }
 
     function triggerAutomatedSearch() {
