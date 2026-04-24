@@ -130,11 +130,14 @@ function createProfiling(alumni) {
     variasi_nama.push(`${parts[0][0]}. ${parts[parts.length - 1]}`);
     variasi_nama.push(`${parts[parts.length - 1]}, ${parts[0]}`);
   }
+  const tahunLulus = alumni.tanggal_lulus
+    ? String(new Date(alumni.tanggal_lulus).getFullYear())
+    : (alumni.tahun_lulus ? String(alumni.tahun_lulus) : '');
   return {
     ...alumni,
     nama_variasi: variasi_nama,
     kata_kunci_afiliasi: ['Universitas Muhammadiyah Malang', 'UMM', alumni.prodi || ''],
-    kata_kunci_konteks: [alumni.prodi || '', alumni.tahun_lulus ? alumni.tahun_lulus.toString() : '', alumni.kota || '']
+    kata_kunci_konteks: [alumni.prodi || '', tahunLulus, alumni.kota || '']
   };
 }
 
@@ -217,7 +220,9 @@ function generateSearchQueries(alumni) {
   const prodi = alumni.prodi || '';
   const fakultas = alumni.fakultas || '';
   const kota = alumni.kota || '';
-  const tahun = alumni.tahun_lulus ? String(alumni.tahun_lulus) : '';
+  const tahun = alumni.tanggal_lulus
+    ? String(new Date(alumni.tanggal_lulus).getFullYear())
+    : (alumni.tahun_lulus ? String(alumni.tahun_lulus) : '');
   const variasi = Array.isArray(alumni.nama_variasi) ? alumni.nama_variasi : [nama];
 
   return Array.from(new Set([
@@ -277,7 +282,7 @@ function buildTrackingWorkbenchItem(row) {
     row.prodi ? 8 : 0,
     row.fakultas ? 6 : 0,
     row.kota ? 8 : 0,
-    row.tahun_lulus ? 8 : 0,
+    row.tanggal_lulus || row.tahun_lulus ? 8 : 0,
     row.nama_perusahaan ? 16 : 0,
     row.posisi ? 10 : 0,
     row.jenis_instansi ? 6 : 0,
@@ -296,7 +301,7 @@ function buildTrackingWorkbenchItem(row) {
     {
       source: 'Master Alumni',
       title: `Profil ${row.nama || 'alumni'}`,
-      snippet: `${row.prodi || '-'} | ${row.fakultas || '-'} | ${row.kota || '-'} | Lulus ${row.tahun_lulus || '-'}`,
+      snippet: `${row.prodi || '-'} | ${row.fakultas || '-'} | ${row.kota || '-'} | Lulus ${formatDisplayDate(row.tanggal_lulus || row.tahun_lulus)}`,
       link: `/admin/detailprofile.html?id=${row.id}`,
       waktu: formatDisplayDate(row.last_update || new Date()),
       score: 20
@@ -531,7 +536,7 @@ app.get('/api/master-alumni/:id', authenticateToken, (req, res) => {
       m.prodi,
       m.fakultas,
       m.kota,
-      m.tahun_lulus,
+      m.tanggal_lulus,
       COALESCE(t.status_pelacakan, 'Belum Dilacak') AS status_pelacakan,
       COALESCE(t.hasil_kandidat, '') AS hasil_kandidat,
       t.last_update,
@@ -606,14 +611,21 @@ app.get('/api/admin/tracking-workbench', (req, res) => {
     SELECT
       m.id,
       m.nama,
+      m.nim,
+      m.tahun_masuk,
       m.prodi,
       m.fakultas,
       m.kota,
-      m.tahun_lulus,
+      m.tanggal_lulus,
       u.foto_profil,
+      u.username,
+      u.email,
+      u.role,
+      u.alumni_id,
       p.id AS pekerjaan_id,
       p.nama_perusahaan,
       p.posisi,
+      p.tahun_mulai,
       p.jenis_instansi,
       p.alamat_kerja,
       p.email_publik,
@@ -652,14 +664,21 @@ app.get('/api/admin/tracking-workbench/:id', (req, res) => {
     SELECT
       m.id,
       m.nama,
+      m.nim,
+      m.tahun_masuk,
       m.prodi,
       m.fakultas,
       m.kota,
-      m.tahun_lulus,
+      m.tanggal_lulus,
       u.foto_profil,
+      u.username,
+      u.email,
+      u.role,
+      u.alumni_id,
       p.id AS pekerjaan_id,
       p.nama_perusahaan,
       p.posisi,
+      p.tahun_mulai,
       p.jenis_instansi,
       p.alamat_kerja,
       p.email_publik,
@@ -703,9 +722,10 @@ app.get('/api/user/profile-lengkap', (req, res) => {
   const sql = `
     SELECT
       u.id, u.username, u.role, u.foto_profil, u.alumni_id,
-      m.nama AS nama_lengkap, m.prodi, m.tanggal_lulus, m.kota, m.fakultas,
+      u.email AS akun_email,
+      m.nama AS nama_lengkap, m.nim, m.tahun_masuk, m.prodi, m.tanggal_lulus, m.kota, m.fakultas,
       p.id AS pekerjaan_id,
-      p.nama_perusahaan, p.posisi, p.jenis_instansi, p.alamat_kerja,
+      p.nama_perusahaan, p.posisi, p.tahun_mulai, p.jenis_instansi, p.alamat_kerja,
       p.email_publik, p.no_hp, p.linkedin_url, p.ig_url, p.sosmed_kantor,
       p.fb_url, p.tiktok_url
     FROM users u

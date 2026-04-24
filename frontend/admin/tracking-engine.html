@@ -706,6 +706,17 @@
       return String(value ?? '').replace(/[&<>"']/g, (match) => map[match]);
     }
 
+    function formatDate(value) {
+      if (!value) return '-';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '-';
+      return new Intl.DateTimeFormat('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      }).format(date);
+    }
+
     function showToast(message, type = 'info') {
       const toastShell = document.getElementById('toastShell');
       const el = document.createElement('div');
@@ -839,7 +850,8 @@
       }
 
       document.getElementById('detailName').textContent = detail.nama || 'Nama tidak diketahui';
-      document.getElementById('detailMeta').textContent = `${detail.prodi || '-'} • ${detail.fakultas || '-'} • ${detail.kota || '-'} • Lulus ${detail.tahun_lulus || '-'}`;
+      const tanggalLulus = detail.tanggal_lulus ? formatDate(detail.tanggal_lulus) : (detail.tahun_lulus || '-');
+      document.getElementById('detailMeta').textContent = `${detail.prodi || '-'} • ${detail.fakultas || '-'} • ${detail.kota || '-'} • Lulus ${tanggalLulus}`;
       document.getElementById('detailScore').textContent = `${detail.scoring?.score ?? 0}/100`;
       document.getElementById('detailLevel').textContent = detail.scoring?.label || '-';
       document.getElementById('detailValidation').textContent = detail.validation?.level || '-';

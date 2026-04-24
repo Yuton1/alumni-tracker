@@ -481,6 +481,30 @@
     <div class="info-section">
       <h6><i class="fas fa-graduation-cap me-2"></i> Informasi Akademik</h6>
       <div class="info-row">
+        <div class="info-label">Nama Lengkap</div>
+        <div class="info-value" id="academicNama">-</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">NIM</div>
+        <div class="info-value" id="academicNim">-</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Tahun Masuk</div>
+        <div class="info-value" id="academicTahunMasuk">-</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Username Akun</div>
+        <div class="info-value" id="academicUsername">-</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Email Akun</div>
+        <div class="info-value" id="academicEmailAkun">-</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Role</div>
+        <div class="info-value" id="academicRole">-</div>
+      </div>
+      <div class="info-row">
         <div class="info-label">Program Studi</div>
         <div class="info-value" id="academicProdi">-</div>
       </div>
@@ -489,7 +513,7 @@
         <div class="info-value" id="academicFaculty">-</div>
       </div>
       <div class="info-row">
-        <div class="info-label">Tahun Lulus</div>
+        <div class="info-label">Tanggal Lulus</div>
         <div class="info-value" id="academicYear">-</div>
       </div>
       <div class="info-row">
@@ -501,6 +525,10 @@
     <!-- Employment Information -->
     <div class="info-section">
       <h6><i class="fas fa-briefcase me-2"></i> Informasi Pekerjaan Terbaru</h6>
+      <div class="info-row">
+        <div class="info-label">Tahun Mulai</div>
+        <div class="info-value" id="employmentStartYear">-</div>
+      </div>
       <div class="info-row">
         <div class="info-label">Instansi</div>
         <div class="info-value" id="employmentCompany">-</div>
@@ -516,6 +544,10 @@
       <div class="info-row">
         <div class="info-label">Lokasi Kerja</div>
         <div class="info-value" id="employmentLocation">-</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Sosmed Kantor</div>
+        <div class="info-value" id="employmentSosmedKantor">-</div>
       </div>
     </div>
 
@@ -644,6 +676,50 @@
       }).format(date);
     }
 
+    function normalizeText(value) {
+      return String(value ?? '').trim();
+    }
+
+    function getUpdateBadgeText(snapshot, current) {
+      const baseText = current.last_update ? `Sinkron ${timeAgo(current.last_update)}` : 'Belum ada pembaruan';
+
+      if (!snapshot) {
+        return baseText;
+      }
+
+      const fieldsToCompare = [
+        'prodi',
+        'fakultas',
+        'kota',
+        'tanggal_lulus',
+        'tahun_lulus',
+        'nama_perusahaan',
+        'posisi',
+        'tahun_mulai',
+        'jenis_instansi',
+        'alamat_kerja',
+        'email_publik',
+        'no_hp',
+        'linkedin_url',
+        'ig_url',
+        'fb_url',
+        'tiktok_url'
+      ];
+
+      const hasProdiChange = normalizeText(snapshot.prodi) !== normalizeText(current.prodi);
+      const hasAnyChange = fieldsToCompare.some((field) => normalizeText(snapshot[field]) !== normalizeText(current[field]));
+
+      if (hasProdiChange) {
+        return 'Program studi diperbarui';
+      }
+
+      if (hasAnyChange) {
+        return 'Profil diperbarui';
+      }
+
+      return baseText;
+    }
+
     function buildInitials(name) {
       const words = String(name || '').trim().split(/\s+/).filter(Boolean);
       if (!words.length) return 'NA';
@@ -698,7 +774,10 @@
         data.fb_url ? { icon: 'fab fa-facebook', label: 'Facebook', url: data.fb_url } : null,
         data.tiktok_url ? { icon: 'fab fa-tiktok', label: 'TikTok', url: data.tiktok_url } : null,
         data.email_publik ? { icon: 'fas fa-envelope', label: 'Email', url: `mailto:${data.email_publik}` } : null,
-        data.no_hp ? { icon: 'fas fa-phone', label: 'No HP', url: `tel:${data.no_hp}` } : null
+        data.no_hp ? { icon: 'fas fa-phone', label: 'No HP', url: `tel:${data.no_hp}` } : null,
+        data.sosmed_kantor && /^https?:\/\//i.test(data.sosmed_kantor)
+          ? { icon: 'fas fa-building', label: 'Sosmed Kantor', url: data.sosmed_kantor }
+          : null
       ].filter(Boolean);
 
       if (!links.length) {
@@ -706,11 +785,28 @@
         return;
       }
 
-      container.innerHTML = links.map((item) => `
+      const parts = links.map((item) => `
         <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" class="social-link">
           <i class="${escapeHtml(item.icon)}"></i> ${escapeHtml(item.label)}
         </a>
-      `).join('');
+      `);
+
+      if (data.sosmed_kantor && !/^https?:\/\//i.test(data.sosmed_kantor)) {
+        parts.push(`<div class="info-value">Sosmed kantor: ${escapeHtml(data.sosmed_kantor)}</div>`);
+      }
+
+      container.innerHTML = parts.join('');
+    }
+
+    function formatTanggalLulus(data) {
+      if (!data) return '-';
+      if (data.tanggal_lulus) {
+        return formatDate(data.tanggal_lulus);
+      }
+      if (data.tahun_lulus) {
+        return String(data.tahun_lulus);
+      }
+      return '-';
     }
 
     function renderQueries(queries) {
@@ -789,17 +885,22 @@
             }
 
             currentInsight = data;
-            document.getElementById('profileName').textContent = data.nama || 'Nama Tidak Diketahui';
-            document.getElementById('profileId').textContent = '#' + (data.id || idAlumni);
+            document.getElementById('profileName').textContent = data.nama || data.nama_lengkap || 'Nama Tidak Diketahui';
+            document.getElementById('profileId').textContent = `#${data.id || idAlumni}${data.nim ? ` • NIM ${data.nim}` : ''}`;
             document.getElementById('profileProdi').textContent = data.prodi || '-';
 
-            const tahun = data.tahun_lulus
-              || (data.tanggal_lulus ? new Date(data.tanggal_lulus).getFullYear() : '-');
+            const tahun = formatTanggalLulus(data);
             document.getElementById('profileYear').textContent = tahun;
           
             renderAvatar(data);
           
             // Bagian Akademik
+            document.getElementById('academicNama').textContent = data.nama || data.nama_lengkap || '-';
+            document.getElementById('academicNim').textContent = data.nim || '-';
+            document.getElementById('academicTahunMasuk').textContent = data.tahun_masuk || '-';
+            document.getElementById('academicUsername').textContent = data.username || '-';
+            document.getElementById('academicEmailAkun').textContent = data.akun_email || data.email || '-';
+            document.getElementById('academicRole').textContent = data.role || '-';
             document.getElementById('academicProdi').textContent = data.prodi || '-';
             document.getElementById('academicFaculty').textContent = data.fakultas || '-';
             document.getElementById('academicYear').textContent = tahun;
@@ -808,8 +909,10 @@
             // Bagian Pekerjaan (Pastikan API mengirimkan field ini)
             document.getElementById('employmentCompany').textContent = data.nama_perusahaan || data.perusahaan || '-';
             document.getElementById('employmentPosition').textContent = data.posisi || data.jabatan || '-';
+            document.getElementById('employmentStartYear').textContent = data.tahun_mulai || '-';
             document.getElementById('employmentCategory').textContent = data.jenis_instansi || data.kategori || '-';
             document.getElementById('employmentLocation').textContent = data.alamat_kerja || data.lokasi || '-';
+            document.getElementById('employmentSosmedKantor').textContent = data.sosmed_kantor || '-';
           
             // Bagian Scoring & Validation
             document.getElementById('confidenceLabel').textContent = data.scoring?.label || 'Low';
@@ -836,14 +939,8 @@
           
             // Last Update
             const updateBadge = document.getElementById('updateBadge');
-            if (data.last_update) {
-                const timeString = timeAgo(data.last_update);
-                updateBadge.innerHTML = `<i class="fas fa-clock me-1"></i> Update: ${timeString}`;
-            } else {
-                updateBadge.innerHTML = `<i class="fas fa-clock me-1"></i> Belum ada data`;
-            }
-            const dateString = data.last_update ? formatDate(data.last_update) : '-';
-            updateBadge.innerHTML = `<i class="fas fa-clock me-1"></i> Update: ${escapeHtml(dateString)}`;
+            const updateText = getUpdateBadgeText(storedInsight, data);
+            updateBadge.innerHTML = `<i class="fas fa-clock me-1"></i> Update: ${escapeHtml(updateText)}`;
           
             // Fungsi Render Lainnya
             renderSocialLinks(data);
