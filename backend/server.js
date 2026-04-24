@@ -13,24 +13,17 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'alumni-tracker-secret';
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-const allowedOrigins = [
-  "https://alumni-tracker-xi.vercel.app",
-  "https://alumni-tracker.vercel.app",
-  "http://localhost:5500",
-  "http://127.0.0.1:5500"
-];
-
 app.use(cors({
   origin: [
     "https://alumni-tracker-xi.vercel.app",
-    "https://alumni-tracker-2glr1b8cy-maliks-projects-1fd561e1.vercel.app",
     "http://localhost:5500",
     "http://127.0.0.1:5500"
   ],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
+app.use(express.json());
 
 const db = mysql.createPool({
   host: process.env.DB_HOST,
