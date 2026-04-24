@@ -307,31 +307,31 @@
         authorizedFetch(`/api/user/rekap-pekerjaan?id=${userId}&t=${Date.now()}`)
           .then(rows => {
             console.log("Data mentah dari API:", rows);
-            
-            // Pastikan data adalah array dan tidak kosong
+          
             if (Array.isArray(rows) && rows.length > 0) {
-              
-              // 1. Urutkan (Data terbaru di atas)
+              // 1. Urutkan: Tahun terbaru (2025) akan berada di paling atas (index 0)
               const sortedJobs = rows.sort((a, b) => (parseInt(b.tahun_mulai) || 0) - (parseInt(a.tahun_mulai) || 0));
               
-              // 2. GANTI INI: Ambil index ke-0 (Data paling baru)
+              // 2. PERBAIKAN: Ambil item pertama saja
               const latest = sortedJobs; 
               
-              console.log("Data terbaru yang ditampilkan:", latest);
+              console.log("Data terbaru yang dipilih:", latest);
             
               const updateEl = (id, value) => {
                 const el = document.getElementById(id);
                 if (el) el.textContent = value || '-';
               };
             
-              // 3. Sekarang latest.nama_perusahaan akan terbaca karena 'latest' adalah Objek, bukan Array
+              // Sekarang latest.nama_perusahaan akan terbaca karena 'latest' adalah satu Objek
               updateEl('dashPerusahaan', latest.nama_perusahaan);
               updateEl('dashPosisi', latest.posisi);
               updateEl('dashJenisInstansi', latest.jenis_instansi);
-              
+            
             } else {
-              // Jika data kosong, tampilkan strip
-              ['dashPerusahaan', 'dashPosisi', 'dashJenisInstansi'].forEach(id => {
+              console.warn("API Berhasil tapi data kosong untuk user ini.");
+              // Jika kosong, set semua ke strip
+              const ids = ['dashPerusahaan', 'dashPosisi', 'dashJenisInstansi'];
+              ids.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.textContent = '-';
               });
