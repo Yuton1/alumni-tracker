@@ -6,7 +6,7 @@
 
 // ===== CONFIGURATION =====
 const API_CONFIG = {
-  BASE_URL: "https://alumni-tracker-api.onrender.com",
+  BASE_URL: "https://alumni-tracker-xi.vercel.app",
   TIMEOUT: 10000
 };
 
