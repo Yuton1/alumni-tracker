@@ -782,13 +782,8 @@
             }
             
             currentInsight = data;
-          
-            // 3. Mapping data dari database ke HTML (Sesuaikan nama kolom database)
             document.getElementById('profileName').textContent = data.nama || 'Nama Tidak Diketahui';
-            
-            // Ganti data.id menjadi data.nim sesuai tabel database kamu
             document.getElementById('profileId').textContent = '#' + (data.nim || idAlumni); 
-            
             document.getElementById('profileProdi').textContent = data.prodi || '-';
           
             // Sesuaikan jika di database kolomnya 'tahun_masuk'
@@ -800,7 +795,7 @@
             // Bagian Akademik
             document.getElementById('academicProdi').textContent = data.prodi || '-';
             document.getElementById('academicFaculty').textContent = data.fakultas || '-';
-            document.getElementById('academicYear').textContent = tahun;
+            document.getElementById('academicYear').textContent = data.tahun_masuk || '-';
             document.getElementById('academicCity').textContent = data.kota || '-';
           
             // Bagian Pekerjaan (Pastikan API mengirimkan field ini)
