@@ -306,10 +306,21 @@
         const userId = getUserId();
         authorizedFetch(`/api/user/rekap-pekerjaan?id=${userId}&t=${Date.now()}`)
           .then(rows => {
+            console.log("Data mentah dari API:", rows);
             if (Array.isArray(rows) && rows.length > 0) {
               // Diurutkan berdasarkan tahun_mulai dari yang terbesar (terbaru)
               const sortedJobs = rows.sort((a, b) => (parseInt(b.tahun_mulai) || 0) - (parseInt(a.tahun_mulai) || 0));
               const latest = sortedJobs;
+              console.table(latest);
+              const updateEl = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value || '-';
+              };
+              updateEl('dashPerusahaan', latest.nama_perusahaan);
+              updateEl('dashPosisi', latest.posisi);
+              updateEl('dashJenisInstansi', latest.jenis_instansi);
+            } else {
+              console.warn("API Berhasil tapi data kosong untuk user ini.");
 
               console.log("Menampilkan pekerjaan terbaru:", latest);
               const perusahaanEl = document.getElementById('dashPerusahaan');
