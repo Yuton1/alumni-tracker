@@ -806,10 +806,10 @@
             document.getElementById('academicCity').textContent = data.kota || '-';
           
             // Bagian Pekerjaan (Pastikan API mengirimkan field ini)
-            document.getElementById('employmentCompany').textContent = data.nama_perusahaan || '-';
-            document.getElementById('employmentPosition').textContent = data.posisi || '-';
-            document.getElementById('employmentCategory').textContent = data.jenis_instansi || '-';
-            document.getElementById('employmentLocation').textContent = data.alamat_kerja || '-';
+            document.getElementById('employmentCompany').textContent = data.nama_perusahaan || data.perusahaan || '-';
+            document.getElementById('employmentPosition').textContent = data.posisi || data.jabatan || '-';
+            document.getElementById('employmentCategory').textContent = data.jenis_instansi || data.kategori || '-';
+            document.getElementById('employmentLocation').textContent = data.alamat_kerja || data.lokasi || '-';
           
             // Bagian Scoring & Validation
             document.getElementById('confidenceLabel').textContent = data.scoring?.label || 'Low';
@@ -836,6 +836,12 @@
           
             // Last Update
             const updateBadge = document.getElementById('updateBadge');
+            if (data.last_update) {
+                const timeString = timeAgo(data.last_update);
+                updateBadge.innerHTML = `<i class="fas fa-clock me-1"></i> Update: ${timeString}`;
+            } else {
+                updateBadge.innerHTML = `<i class="fas fa-clock me-1"></i> Belum ada data`;
+            }
             const dateString = data.last_update ? formatDate(data.last_update) : '-';
             updateBadge.innerHTML = `<i class="fas fa-clock me-1"></i> Update: ${escapeHtml(dateString)}`;
           
@@ -875,6 +881,31 @@
       if (!idAlumni) return;
       window.location.href = `tracking-engine.html?id=${idAlumni}#evidence`;
     }
+
+    // Fungsi untuk mengubah timestamp menjadi format "waktu yang lalu"
+  function timeAgo(dateValue) {
+      if (!dateValue) return 'Belum pernah';
+      
+      const now = new Date();
+      const past = new Date(dateValue);
+      const seconds = Math.floor((now - past) / 1000);
+  
+      if (seconds < 60) return 'baru saja';
+      
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes} menit lalu`;
+      
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours} jam lalu`;
+      
+      const days = Math.floor(hours / 24);
+      if (days < 30) return `${days} hari lalu`;
+      
+      const months = Math.floor(days / 30);
+      if (months < 12) return `${months} bulan lalu`;
+  
+      return formatDate(dateValue); // Jika sudah sangat lama, tampilkan tanggal saja
+  }
 
     document.addEventListener('DOMContentLoaded', loadDataAlumni);
   </script>
