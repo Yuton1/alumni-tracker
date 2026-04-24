@@ -13,7 +13,16 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'alumni-tracker-secret';
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use(cors());
+app.use(cors({
+  origin: [
+    "https://alumni-tracker-xi.vercel.app",
+    "http://localhost:3000"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+}));
+app.options('*', cors());
 app.use(express.json());
 
 const db = mysql.createPool({
@@ -63,16 +72,28 @@ const upload = multer({
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ');
+
+  if (!authHeader) {
+    return res.status(401).json({
+      message: 'Akses ditolak, token tidak ada'
+    });
+  }
+
+  const token = authHeader.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({ message: 'Akses ditolak, token tidak ada' });
+    return res.status(401).json({
+      message: 'Token tidak valid'
+    });
   }
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err) {
-      return res.status(403).json({ message: 'Token tidak valid' });
+      return res.status(403).json({
+        message: 'Token tidak valid'
+      });
     }
+
     req.user = user;
     next();
   });
